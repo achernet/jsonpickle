@@ -1,6 +1,9 @@
 *.pyc
 *.egg-info
 *.swp
+*.project
+*.pydevproject
+/.settings
 *#*
 *~
 *.tar.gz
