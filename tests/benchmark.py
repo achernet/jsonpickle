@@ -21,7 +21,7 @@ if IS_25_DOWN:
 json = """\
 import feedparser
 import jsonpickle
-import jsonpickle.tests.thirdparty_tests as test
+import jsonpickle.tests.thirdparty_test as test
 doc = feedparser.parse(test.RSS_DOC)
 
 jsonpickle.set_preferred_backend('%s')
