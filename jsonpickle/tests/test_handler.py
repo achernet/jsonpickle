@@ -7,14 +7,18 @@
 # you should have received as part of this distribution.
 
 import doctest
-import unittest
-
 import jsonpickle
 import jsonpickle.handlers
+import unittest2
+from unittest2.case import TestCase
+from unittest2.loader import makeSuite
+from unittest2.suite import TestSuite
 
 
 class CustomObject(object):
+
     "A class to be serialized by a custom handler"
+
     def __init__(self, name=None, creator=None):
         self.name = name
         self.creator = creator
@@ -54,7 +58,7 @@ class DecoratedHandler(NullHandler):
     pass
 
 
-class HandlerTestCase(unittest.TestCase):
+class HandlerTestCase(TestCase):
 
     def setUp(self):
         jsonpickle.handlers.register(CustomObject, NullHandler)
@@ -122,11 +126,11 @@ class HandlerTestCase(unittest.TestCase):
 
 
 def suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(HandlerTestCase))
+    suite = TestSuite()
+    suite.addTest(makeSuite(HandlerTestCase))
     suite.addTest(doctest.DocTestSuite(jsonpickle.handlers))
     return suite
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+    unittest2.main(defaultTest='suite')

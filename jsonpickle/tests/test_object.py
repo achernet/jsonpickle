@@ -2,14 +2,14 @@ import collections
 import decimal
 import re
 import sys
-import unittest
+
+from unittest2.suite import TestSuite
+from unittest2.loader import makeSuite
+from unittest2.case import TestCase
 
 import jsonpickle
-from jsonpickle import handlers
-from jsonpickle import tags
-from jsonpickle.compat import queue
-from jsonpickle.compat import set
-from jsonpickle.compat import unicode
+from jsonpickle import handlers, tags
+from jsonpickle.compat import queue, set, unicode
 
 
 class Thing(object):
@@ -28,8 +28,10 @@ class ListSubclass(list):
 
 
 class BrokenReprThing(Thing):
+
     def __repr__(self):
         raise Exception('%s has a broken repr' % self.name)
+
     def __str__(self):
         return '<BrokenReprThing "%s">' % self.name
 
@@ -51,6 +53,7 @@ class GetstateDict(dict):
 
 
 class GetstateOnly(object):
+
     def __init__(self, a=1, b=2):
         self.a = a
         self.b = b
@@ -104,9 +107,9 @@ class ThingWithFunctionRefs(object):
     def __init__(self):
         self.fn = func
 
+
 def func(x):
     return x
-
 
 
 class ThingWithQueue(object):
@@ -116,7 +119,6 @@ class ThingWithQueue(object):
         self.child_2 = queue.Queue()
         self.childref_1 = self.child_1
         self.childref_2 = self.child_2
-
 
 
 class ThingWithSlots(object):
@@ -173,7 +175,7 @@ class ThingWithClassAsDefaultFactory(collections.defaultdict):
         return self.__class__()
 
 
-class AdvancedObjectsTestCase(unittest.TestCase):
+class AdvancedObjectsTestCase(TestCase):
 
     def setUp(self):
         self.pickler = jsonpickle.pickler.Pickler()
@@ -213,10 +215,10 @@ class AdvancedObjectsTestCase(unittest.TestCase):
         self.assertEqual(newdefaultdict[0], 'zero')
         self.assertEqual(type(newdefaultdict[1]), collections.defaultdict)
         self.assertEqual(newdefaultdict[1][0], 'zero')
-        self.assertEqual(newdefaultdict[1][1], {}) # inner defaultdict
-        self.assertEqual(newdefaultdict[2][0], 0) # outer defaultdict
+        self.assertEqual(newdefaultdict[1][1], {})  # inner defaultdict
+        self.assertEqual(newdefaultdict[2][0], 0)  # outer defaultdict
         self.assertEqual(type(newdefaultdict[3]), collections.defaultdict)
-        self.assertEqual(newdefaultdict[3].default_factory, int) # outer-most defaultdict
+        self.assertEqual(newdefaultdict[3].default_factory, int)  # outer-most defaultdict
 
     def test_defaultdict_subclass_with_self_as_default_factory(self):
         cls = ThingWithSelfAsDefaultFactory
@@ -294,7 +296,7 @@ class AdvancedObjectsTestCase(unittest.TestCase):
         counter = collections.Counter({1: 2})
         encoded = jsonpickle.encode(counter)
         decoded = jsonpickle.decode(encoded)
-        self.assertTrue(type(decoded) is collections.Counter)
+        self.assertIsInstance(decoded, collections.Counter)
         # the integer key becomes a string when keys=False
         self.assertEqual(decoded.get('1'), 2)
 
@@ -305,7 +307,7 @@ class AdvancedObjectsTestCase(unittest.TestCase):
         counter = collections.Counter({1: 2})
         encoded = jsonpickle.encode(counter, keys=True)
         decoded = jsonpickle.decode(encoded, keys=True)
-        self.assertTrue(type(decoded) is collections.Counter)
+        self.assertIsInstance(decoded, collections.Counter)
         self.assertEqual(decoded.get(1), 2)
 
     def test_list_with_fd(self):
@@ -464,7 +466,7 @@ class AdvancedObjectsTestCase(unittest.TestCase):
         broken __repr__ implementations.
         """
         br = BrokenReprThing('test')
-        obj = { br: True }
+        obj = {br: True}
         pickler = jsonpickle.pickler.Pickler()
         flattened = pickler.flatten(obj)
         self.assertTrue('<BrokenReprThing "test">' in flattened)
@@ -527,14 +529,10 @@ class AdvancedObjectsTestCase(unittest.TestCase):
         obj['key1'] = 1
 
         flattened = self.pickler.flatten(obj)
-        self.assertEqual({'key1': 1,
-                          tags.OBJECT:
-                            'object_test.DictSubclass'
-                         },
-                         flattened)
-        self.assertEqual(flattened[tags.OBJECT],
-                         'object_test.DictSubclass')
-
+        expected_name = '{0}.DictSubclass'.format(self.__module__)
+        expected_obj = {'key1': 1, tags.OBJECT: expected_name}
+        self.assertEqual(expected_obj, flattened)
+        self.assertEqual(flattened[tags.OBJECT], expected_name)
         inflated = self.unpickler.restore(flattened)
         self.assertEqual(1, inflated['key1'])
         self.assertEqual(inflated.name, 'Test')
@@ -547,7 +545,7 @@ class AdvancedObjectsTestCase(unittest.TestCase):
 
         flattened = self.pickler.flatten(obj)
         self.assertEqual(1, flattened['key1'])
-        self.assertFalse(tags.OBJECT in flattened)
+        self.assertNotIn(tags.OBJECT, flattened)
 
         inflated = self.unpickler.restore(flattened)
         self.assertEqual(1, inflated['key1'])
@@ -557,11 +555,11 @@ class AdvancedObjectsTestCase(unittest.TestCase):
         obj['key1'] = 1
 
         flattened = self.pickler.flatten(obj)
-        self.assertTrue(tags.OBJECT in flattened)
-        self.assertEqual('object_test.GetstateDict',
-                         flattened[tags.OBJECT])
-        self.assertTrue(tags.STATE in flattened)
-        self.assertTrue(tags.TUPLE in flattened[tags.STATE])
+        self.assertIn(tags.OBJECT, flattened)
+        expected_name = '{0}.GetstateDict'.format(self.__module__)
+        self.assertEqual(expected_name, flattened[tags.OBJECT])
+        self.assertIn(tags.STATE, flattened)
+        self.assertIn(tags.TUPLE, flattened[tags.STATE])
         self.assertEqual(['test', {'key1': 1}],
                          flattened[tags.STATE][tags.TUPLE])
 
@@ -666,11 +664,13 @@ class AdvancedObjectsTestCase(unittest.TestCase):
 
 # Test classes for ExternalHandlerTestCase
 class Mixin(object):
+
     def ok(self):
         return True
 
 
 class UnicodeMixin(unicode, Mixin):
+
     def __add__(self, rhs):
         obj = super(UnicodeMixin, self).__add__(rhs)
         return UnicodeMixin(obj)
@@ -688,7 +688,7 @@ class UnicodeMixinHandler(handlers.BaseHandler):
 handlers.register(UnicodeMixin, UnicodeMixinHandler)
 
 
-class ExternalHandlerTestCase(unittest.TestCase):
+class ExternalHandlerTestCase(TestCase):
 
     def test_unicode_mixin(self):
         obj = UnicodeMixin('test')
@@ -708,11 +708,11 @@ class ExternalHandlerTestCase(unittest.TestCase):
 
 
 def suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(AdvancedObjectsTestCase))
-    suite.addTest(unittest.makeSuite(ExternalHandlerTestCase))
+    suite = TestSuite()
+    suite.addTest(makeSuite(AdvancedObjectsTestCase))
+    suite.addTest(makeSuite(ExternalHandlerTestCase))
     return suite
 
 
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+    unittest2.main(defaultTest='suite')

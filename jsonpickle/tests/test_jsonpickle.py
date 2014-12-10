@@ -7,19 +7,15 @@
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution.
 
-import doctest
-import os
-import unittest
+from jsonpickle import tags, util
+from jsonpickle.compat import PY3, PY32, unichr, unicode
+from unittest2.case import TestCase
 import collections
-
+import doctest
 import jsonpickle
 import jsonpickle.backend
 import jsonpickle.handlers
-
-from jsonpickle import tags, util
-from jsonpickle.compat import unicode
-from jsonpickle.compat import unichr
-from jsonpickle.compat import PY32, PY3
+import os
 
 
 class Thing(object):
@@ -75,8 +71,7 @@ class ThingWithProps(object):
         return self.identity == other.identity
 
 
-
-class PicklingTestCase(unittest.TestCase):
+class PicklingTestCase(TestCase):
 
     def setUp(self):
         self.pickler = jsonpickle.pickler.Pickler()
@@ -161,17 +156,17 @@ class PicklingTestCase(unittest.TestCase):
         self.assertEqual(tupleB, self.unpickler.restore(tupleB_pickle))
 
     def test_tuple_roundtrip(self):
-        data = (1,2,3)
+        data = (1, 2, 3)
         newdata = jsonpickle.decode(jsonpickle.encode(data))
         self.assertEqual(data, newdata)
 
     def test_set_roundtrip(self):
-        data = set([1,2,3])
+        data = set([1, 2, 3])
         newdata = jsonpickle.decode(jsonpickle.encode(data))
         self.assertEqual(data, newdata)
 
     def test_list_roundtrip(self):
-        data = [1,2,3]
+        data = [1, 2, 3]
         newdata = jsonpickle.decode(jsonpickle.encode(data))
         self.assertEqual(data, newdata)
 
@@ -186,9 +181,9 @@ class PicklingTestCase(unittest.TestCase):
 
         inflated = self.unpickler.restore(flattened)
         self.assertEqual('test name', inflated.name)
-        self.assertTrue(type(inflated) is Thing)
+        self.assertTrue(isinstance(inflated, Thing))
         self.assertEqual('child name', inflated.child.name)
-        self.assertTrue(type(inflated.child) is Thing)
+        self.assertTrue(isinstance(inflated.child, Thing))
 
     def test_classlist(self):
         array = [Thing('one'), Thing('two'), 'a string']
@@ -200,13 +195,13 @@ class PicklingTestCase(unittest.TestCase):
 
         inflated = self.unpickler.restore(flattened)
         self.assertEqual('one', inflated[0].name)
-        self.assertTrue(type(inflated[0]) is Thing)
+        self.assertTrue(isinstance(inflated[0], Thing))
         self.assertEqual('two', inflated[1].name)
-        self.assertTrue(type(inflated[1]) is Thing)
+        self.assertTrue(isinstance(inflated[1], Thing))
         self.assertEqual('a string', inflated[2])
 
     def test_classdict(self):
-        dict = {'k1':Thing('one'), 'k2':Thing('two'), 'k3':3}
+        dict = {'k1': Thing('one'), 'k2': Thing('two'), 'k3': 3}
 
         flattened = self.pickler.flatten(dict)
         self.assertEqual('one', flattened['k1']['name'])
@@ -215,9 +210,9 @@ class PicklingTestCase(unittest.TestCase):
 
         inflated = self.unpickler.restore(flattened)
         self.assertEqual('one', inflated['k1'].name)
-        self.assertTrue(type(inflated['k1']) is Thing)
+        self.assertTrue(isinstance(inflated['k1'], Thing))
         self.assertEqual('two', inflated['k2'].name)
-        self.assertTrue(type(inflated['k2']) is Thing)
+        self.assertTrue(isinstance(inflated['k2'], Thing))
         self.assertEqual(3, inflated['k3'])
 
     def test_recursive(self):
@@ -301,8 +296,8 @@ class PicklingTestCase(unittest.TestCase):
 
         flattened = self.pickler.flatten(obj)
         self.assertEqual(flattened['typeref'], {
-                            tags.TYPE: '__builtin__.object',
-                         })
+            tags.TYPE: '__builtin__.object',
+        })
 
         inflated = self.unpickler.restore(flattened)
         self.assertEqual(inflated.typeref, object)
@@ -316,10 +311,8 @@ class PicklingTestCase(unittest.TestCase):
         obj.classref = Thing
 
         flattened = self.pickler.flatten(obj)
-        self.assertEqual(flattened['classref'], {
-                            tags.TYPE: 'jsonpickle_test.Thing',
-                         })
-
+        expected_name = '{0}.Thing'.format(self.__module__)
+        self.assertEqual(flattened['classref'], {tags.TYPE: expected_name})
         inflated = self.unpickler.restore(flattened)
         self.assertEqual(inflated.classref, Thing)
 
@@ -374,13 +367,12 @@ class PicklingTestCase(unittest.TestCase):
         self.assertTrue(expect is actual)
 
 
-class JSONPickleTestCase(unittest.TestCase):
+class JSONPickleTestCase(TestCase):
 
     def setUp(self):
         self.obj = Thing('A name')
-        self.expected_json = (
-                '{"'+tags.OBJECT+'": "jsonpickle_test.Thing",'
-                ' "name": "A name", "child": null}')
+        exp_fmt = '{{"{0}": "{1}.Thing", "name": "A name", "child": null}}'
+        self.expected_json = exp_fmt.format(tags.OBJECT, self.__module__)
 
     def test_encode(self):
         expect = self.obj
@@ -420,7 +412,7 @@ class JSONPickleTestCase(unittest.TestCase):
 
     def test_tuple_dict_keys_default(self):
         """Test that we handle dictionaries with tuples as keys."""
-        tuple_dict = {(1, 2): 3, (4, 5): { (7, 8): 9 }}
+        tuple_dict = {(1, 2): 3, (4, 5): {(7, 8): 9}}
         pickle = jsonpickle.encode(tuple_dict)
         expect = {'(1, 2)': 3, '(4, 5)': {'(7, 8)': 9}}
         actual = jsonpickle.decode(pickle)
@@ -433,7 +425,7 @@ class JSONPickleTestCase(unittest.TestCase):
 
     def test_tuple_dict_keys_with_keys_enabled(self):
         """Test that we handle dictionaries with tuples as keys."""
-        tuple_dict = {(1, 2): 3, (4, 5): { (7, 8): 9 }}
+        tuple_dict = {(1, 2): 3, (4, 5): {(7, 8): 9}}
         pickle = jsonpickle.encode(tuple_dict, keys=True)
         expect = tuple_dict
         actual = jsonpickle.decode(pickle, keys=True)
@@ -671,6 +663,7 @@ class JSONPickleTestCase(unittest.TestCase):
 
 
 class PicklableNamedTuple(object):
+
     """
     A picklable namedtuple wrapper, to demonstrate the need
     for protocol 2 compatibility. Yes, this is contrived in
@@ -687,11 +680,13 @@ class PicklableNamedTuple(object):
 
 
 class PicklableNamedTupleEx(object):
+
     """
     A picklable namedtuple wrapper, to demonstrate the need
     for protocol 4 compatibility. Yes, this is contrived in
     its use of new, but it demonstrates the issue.
     """
+
     def __getnewargs__(self):
         raise NotImplementedError("This class needs __getnewargs_ex__")
 
@@ -702,7 +697,7 @@ class PicklableNamedTupleEx(object):
         ntuple.__getnewargs_ex__ = (lambda self: ((), kwargs))
         ntuple.__getnewargs__ = newargs
         instance = ntuple.__new__(ntuple,
-                                  *[b for a,b in sorted(kwargs.items())])
+                                  *[b for a, b in sorted(kwargs.items())])
         return instance
 
 
@@ -734,7 +729,9 @@ class PickleProtocol2Thing(object):
 slotmagic = PickleProtocol2Thing('slotmagic')
 dictmagic = PickleProtocol2Thing('dictmagic')
 
+
 class PickleProtocol2GetState(PickleProtocol2Thing):
+
     def __new__(cls, *args):
         instance = super(PickleProtocol2GetState, cls).__new__(cls)
         instance.newargs = args
@@ -743,20 +740,27 @@ class PickleProtocol2GetState(PickleProtocol2Thing):
     def __getstate__(self):
         return 'I am magic'
 
+
 class PickleProtocol2GetStateDict(PickleProtocol2Thing):
+
     def __getstate__(self):
         return {'magic': True}
 
+
 class PickleProtocol2GetStateSlots(PickleProtocol2Thing):
+
     def __getstate__(self):
         return (None, {'slotmagic': slotmagic})
 
+
 class PickleProtocol2GetStateSlotsDict(PickleProtocol2Thing):
+
     def __getstate__(self):
         return ({'dictmagic': dictmagic}, {'slotmagic': slotmagic})
 
 
 class PickleProtocol2GetSetState(PickleProtocol2GetState):
+
     def __setstate__(self, state):
         """
         Contrived example, easy to test
@@ -777,8 +781,9 @@ class PickleProtocol2ChildThing(object):
 
 
 class PickleProtocol2ReduceString(object):
+
     def __reduce__(self):
-        return __name__+'.slotmagic'
+        return __name__ + '.slotmagic'
 
 
 class PickleProtocol2ReduceExString(object):
@@ -787,10 +792,11 @@ class PickleProtocol2ReduceExString(object):
         assert False, "Should not be here"
 
     def __reduce_ex__(self, n):
-        return __name__+'.slotmagic'
+        return __name__ + '.slotmagic'
 
 
 class PickleProtocol2ReduceTuple(object):
+
     def __init__(self, argval, optional=None):
         self.argval = argval
         self.optional = optional
@@ -800,7 +806,7 @@ class PickleProtocol2ReduceTuple(object):
                 ('yam', 1),  # args
                 None,  # state
                 iter([]),  # listitems
-                iter([]), # dictitems
+                iter([]),  # dictitems
                 )
 
 
@@ -809,15 +815,17 @@ def protocol_2_reduce_tuple_func(*args):
 
 
 class PickleProtocol2ReduceTupleFunc(object):
+
     def __init__(self, argval, optional=None):
         self.argval = argval
         self.optional = optional
+
     def __reduce__(self):
         return (protocol_2_reduce_tuple_func,  # callable
                 ('yam', 1),  # args
                 None,  # state
                 iter([]),  # listitems
-                iter([]), # dictitems
+                iter([]),  # dictitems
                 )
 
 
@@ -839,21 +847,23 @@ class PickleProtocol2ReduceNewobj(PickleProtocol2ReduceTupleFunc):
                 (PickleProtocol2ReduceNewobj, 'yam', 1),  # args
                 None,  # state
                 iter([]),  # listitems
-                iter([]), # dictitems
+                iter([]),  # dictitems
                 )
 
 
 class PickleProtocol2ReduceTupleState(PickleProtocol2ReduceTuple):
+
     def __reduce__(self):
         return (PickleProtocol2ReduceTuple,  # callable
                 ('yam', 1),  # args
                 {'foo': 1},  # state
                 iter([]),  # listitems
-                iter([]), # dictitems
+                iter([]),  # dictitems
                 )
 
 
 class PickleProtocol2ReduceTupleSetState(PickleProtocol2ReduceTuple):
+
     def __setstate__(self, state):
         self.bar = state['foo']
 
@@ -862,7 +872,7 @@ class PickleProtocol2ReduceTupleSetState(PickleProtocol2ReduceTuple):
                 ('yam', 1),  # args
                 {'foo': 1},  # state
                 iter([]),  # listitems
-                iter([]), # dictitems
+                iter([]),  # dictitems
                 )
 
 
@@ -878,11 +888,12 @@ class PickleProtocol2ReduceTupleStateSlots(object):
                 ('yam', 1),  # args
                 {'foo': 1},  # state
                 iter([]),  # listitems
-                iter([]), # dictitems
+                iter([]),  # dictitems
                 )
 
 
 class PickleProtocol2ReduceListitemsAppend(object):
+
     def __init__(self):
         self.inner = []
 
@@ -891,13 +902,15 @@ class PickleProtocol2ReduceListitemsAppend(object):
                 (),  # args
                 {},  # state
                 iter(['foo', 'bar']),  # listitems
-                iter([]), # dictitems
+                iter([]),  # dictitems
                 )
 
     def append(self, item):
         self.inner.append(item)
 
+
 class PickleProtocol2ReduceListitemsExtend(object):
+
     def __init__(self):
         self.inner = []
 
@@ -906,13 +919,15 @@ class PickleProtocol2ReduceListitemsExtend(object):
                 (),  # args
                 {},  # state
                 iter(['foo', 'bar']),  # listitems
-                iter([]), # dictitems
+                iter([]),  # dictitems
                 )
 
     def extend(self, items):
         self.inner.exend(items)
 
+
 class PickleProtocol2ReduceDictitems(object):
+
     def __init__(self):
         self.inner = {}
 
@@ -921,11 +936,12 @@ class PickleProtocol2ReduceDictitems(object):
                 (),  # args
                 {},  # state
                 [],  # listitems
-                iter(zip(['foo', 'bar'],['foo', 'bar'])), # dictitems
+                iter(zip(['foo', 'bar'], ['foo', 'bar'])),  # dictitems
                 )
 
     def __setitem__(self, k, v):
         return self.inner.__setitem__(k, v)
+
 
 class PickleProtocol2Classic:
 
@@ -938,13 +954,13 @@ class PickleProtocol2ClassicInitargs:
     def __init__(self, foo, bar=None):
         self.foo = foo
         if bar:
-            self.bar=bar
+            self.bar = bar
 
     def __getinitargs__(self):
         return ('choo', 'choo')
 
 
-class PicklingProtocol4TestCase(unittest.TestCase):
+class PicklingProtocol4TestCase(TestCase):
 
     def test_pickle_newargs_ex(self):
         """
@@ -965,7 +981,7 @@ class PicklingProtocol4TestCase(unittest.TestCase):
         instance = PicklableNamedTupleEx(**{'a': 'b', 'n': 2})
         args, kwargs = instance.__getnewargs_ex__()
         newinstance = PicklableNamedTupleEx.__new__(PicklableNamedTupleEx,
-                                                  *args, **kwargs)
+                                                    *args, **kwargs)
         self.assertEqual(instance, newinstance)
 
     def test_references(self):
@@ -994,7 +1010,7 @@ class PicklingProtocol4TestCase(unittest.TestCase):
         self.assertFalse(decoded.__class__ is PicklableNamedTupleEx)
 
 
-class PicklingProtocol2TestCase(unittest.TestCase):
+class PicklingProtocol2TestCase(TestCase):
 
     def test_classic_init_has_args(self):
         """
@@ -1057,7 +1073,7 @@ class PicklingProtocol2TestCase(unittest.TestCase):
 
     def test_reduce_state_setstate(self):
         'Test reduce with the optional state argument set, on an object with a'\
-        '__setstate__'
+            '__setstate__'
         # nosetests only shows first line of docstring
 
         instance = PickleProtocol2ReduceTupleSetState(5)
@@ -1070,7 +1086,7 @@ class PicklingProtocol2TestCase(unittest.TestCase):
 
     def test_reduce_state_no_dict(self):
         'Test reduce with the optional state argument set, on an object with'\
-        'no __dict__, and no __setstate__'
+            'no __dict__, and no __setstate__'
 
         instance = PickleProtocol2ReduceTupleStateSlots(5)
         encoded = jsonpickle.encode(instance)
@@ -1081,7 +1097,7 @@ class PicklingProtocol2TestCase(unittest.TestCase):
 
     def test_reduce_state_dict(self):
         'Test reduce with the optional state argument set, on an object with a'\
-        '__dict__, and no __setstate__'
+            '__dict__, and no __setstate__'
 
         instance = PickleProtocol2ReduceTupleState(5)
         encoded = jsonpickle.encode(instance)
@@ -1150,7 +1166,6 @@ class PicklingProtocol2TestCase(unittest.TestCase):
         decoded = jsonpickle.decode(encoded)
         self.assertEqual(decoded, slotmagic)
 
-
     def test_pickle_newargs(self):
         """
         Ensure we can pickle and unpickle an object whose class needs arguments
@@ -1169,7 +1184,7 @@ class PicklingProtocol2TestCase(unittest.TestCase):
         """
         instance = PicklableNamedTuple(('a', 'b'), (1, 2))
         newinstance = PicklableNamedTuple.__new__(PicklableNamedTuple,
-                                                 *(instance.__getnewargs__()))
+                                                  *(instance.__getnewargs__()))
         self.assertEqual(instance, newinstance)
 
     def test_getnewargs_priority(self):
@@ -1245,7 +1260,7 @@ class PicklingProtocol2TestCase(unittest.TestCase):
     def test_handles_cyclical_objects(self):
         child = PickleProtocol2Thing(None)
         instance = PickleProtocol2Thing(child, child)
-        child.args = (instance,) # create a cycle
+        child.args = (instance,)  # create a cycle
         # TODO we do not properly restore references inside of lists.
         # Change the above tuple into a list to show the breakage.
 
@@ -1278,7 +1293,7 @@ class PicklingProtocol2TestCase(unittest.TestCase):
     def test_handles_cyclical_objects_in_lists(self):
         child = PickleProtocol2ChildThing(None)
         instance = PickleProtocol2ChildThing([child, child])
-        child.child = instance # create a cycle
+        child.child = instance  # create a cycle
 
         encoded = jsonpickle.encode(instance)
         decoded = jsonpickle.decode(encoded)

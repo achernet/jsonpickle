@@ -1,5 +1,9 @@
-import unittest
+from unittest2.case import TestCase
+from unittest2.loader import makeSuite
+from unittest2.suite import TestSuite
 import jsonpickle
+import unittest2
+
 
 class Node(object):
 
@@ -21,7 +25,7 @@ class Document(Node):
         Node.__init__(self, name)
 
     def __str__(self):
-        ret_str ='Document "%s"\n' % self._name
+        ret_str = 'Document "%s"\n' % self._name
         for c in self._children:
             ret_str += repr(c)
         return ret_str
@@ -31,6 +35,7 @@ class Document(Node):
 
 
 class Question(Node):
+
     def __init__(self, name):
         Node.__init__(self, name)
 
@@ -42,6 +47,7 @@ class Question(Node):
 
 
 class Section(Node):
+
     def __init__(self, name):
         Node.__init__(self, name)
 
@@ -55,7 +61,7 @@ class Section(Node):
         return self.__str__()
 
 
-class DocumentTestCase(unittest.TestCase):
+class DocumentTestCase(TestCase):
 
     def test_cyclical(self):
         """Test that we can pickle cyclical data structure
@@ -90,9 +96,10 @@ class DocumentTestCase(unittest.TestCase):
 
 
 def suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(DocumentTestCase))
+    suite = TestSuite()
+    suite.addTest(makeSuite(DocumentTestCase))
     return suite
 
+
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+    unittest2.main(defaultTest='suite')
