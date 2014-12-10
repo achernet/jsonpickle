@@ -13,7 +13,8 @@ from cpython.type cimport PyType_Check
 from cpython.function cimport PyFunction_Check
 from cpython.method cimport PyMethod_Check
 from cpython.object cimport PyObject_IsInstance, PyObject_HasAttrString, \
-    PyCallable_Check, PyObject_GetAttrString
+    PyCallable_Check, PyObject_GetAttrString, PyObject_TypeCheck, \
+    PyObject_Type
 from cpython.long cimport PyLong_Check
 from cpython.int cimport PyInt_Check
 from cpython.float cimport PyFloat_Check
