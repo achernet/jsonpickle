@@ -25,7 +25,7 @@ from cpython.tuple cimport PyTuple_Check, PyTuple_CheckExact
 from cpython.list cimport PyList_Check, PyList_CheckExact
 from cpython.dict cimport PyDict_Check, PyDict_CheckExact
 from cpython.mapping cimport PyMapping_Check
-from cpython.module cimport PyModule_Check 
+from cpython.module cimport PyModule_Check
 from cpython.version cimport PY_MAJOR_VERSION
 cdef extern from 'Python.h':
     bint PyClass_Check(object obj)
@@ -36,6 +36,7 @@ import io
 import operator
 import time
 import types
+import sys
 
 from UserDict import UserDict
 from jsonpickle.compat import set, unicode, long, PY3
@@ -235,7 +236,7 @@ cpdef bint is_function(object obj):
     if PyObject_IsInstance(obj, types.BuiltinFunctionType):
         return True
     if not PyObject_HasAttrString(obj, '__class__'):
-        return False 
+        return False
     obj_class = PyObject_GetAttrString(obj, '__class__')
     module_name = translate_module_name(obj_class.__module__)
     if module_name != '__builtin__':
@@ -330,16 +331,42 @@ def is_iterator(obj):
             not isinstance(obj, io.IOBase) and not is_file)
 
 
-def is_reducible(obj):
+cpdef bint is_reducible(object obj):
     """
     Returns false if of a type which have special casing, and should not have their
     __reduce__ methods used
     """
-    return (not (is_list(obj) or is_list_like(obj) or is_primitive(obj) or
-                 is_dictionary(obj) or is_sequence(obj) or is_set(obj) or is_tuple(obj) or
-                 is_dictionary_subclass(obj) or is_sequence_subclass(obj) or is_noncomplex(obj)
-                 or is_function(obj) or is_module(obj) or type(obj) is object or obj is object
-                 or (is_type(obj) and obj.__module__ == 'datetime')))
+    if is_list(obj):
+        return False
+    if is_list_like(obj):
+        return False
+    if is_primitive(obj):
+        return False
+    if is_dictionary(obj):
+        return False
+    if is_sequence(obj):
+        return False
+    if is_set(obj):
+        return False
+    if is_tuple(obj):
+        return False
+    if is_dictionary_subclass(obj):
+        return False
+    if is_sequence_subclass(obj):
+        return False
+    if is_noncomplex(obj):
+        return False
+    if is_function(obj):
+        return False
+    if is_module(obj):
+        return False
+    if obj is object:
+        return False
+    if type(obj) is object:
+        return False
+    if is_type(obj) and obj.__module__ == 'datetime':
+        return False
+    return True
 
 
 cpdef bint in_dict(object obj, object key, bint default=False):
