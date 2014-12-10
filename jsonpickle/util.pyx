@@ -32,7 +32,7 @@ cdef extern from 'Python.h':
 
 import base64
 import collections
-import io
+from io import IOBase
 import operator
 import time
 import types
@@ -316,13 +316,18 @@ cpdef inline bint is_list_like(object obj):
     return PyObject_HasAttrString(obj, 'append')
 
 
-def is_iterator(obj):
+cpdef bint is_iterator(object obj):
+    if not PyObject_IsInstance(obj, collections.Iterator):
+        return False
     is_file = False
-    if not PY3:
-        is_file = isinstance(obj, __builtin__.file)
+    if PY_MAJOR_VERSION != 3:
+        is_file = PyObject_IsInstance(obj, __builtin__.file)
+    if is_file:
+        return False
+    if PyObject_IsInstance(obj, IOBase):
+        return False
+    return True
 
-    return (isinstance(obj, collections.Iterator) and
-            not isinstance(obj, io.IOBase) and not is_file)
 
 
 cpdef bint is_reducible(object obj):
