@@ -1,8 +1,12 @@
 *.pyc
+*.bak
 /jsonpickle/*.so
 /jsonpickle/*.html
 /jsonpickle/*.c
 /jsonpickle/*.h
+*.coverage
+/cover
+/htmlcov
 *.egg-info
 *.swp
 *.project
