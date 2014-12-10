@@ -294,7 +294,7 @@ cpdef bint is_picklable(object name, object value):
     return True
 
 
-def is_installed(module):
+cpdef bint is_installed(str module):
     """Tests to see if ``module`` is available on the sys.path
 
     >>> is_installed('sys')
@@ -303,6 +303,8 @@ def is_installed(module):
     False
 
     """
+    if module in sys.modules:
+        return True
     try:
         __import__(module)
         return True
