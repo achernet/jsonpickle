@@ -16,8 +16,8 @@ mod = 'ujson'
 json = """\
 import feedparser
 import jsonpickle
-# import jsonpickle.tests.thirdparty_test as test
-import thirdparty_test as test
+import jsonpickle.tests.test_thirdparty as test
+
 doc = feedparser.parse(test.RSS_DOC)
 
 jsonpickle.set_preferred_backend('%s')
