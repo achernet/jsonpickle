@@ -233,6 +233,9 @@ cpdef inline bint is_function(object obj):
         return True
     if PyMethod_Check(obj):
         return True
+    # only True for old-style classes without a '__class__' property
+    if PyClass_Check(obj):
+        return False
     obj_class = obj.__class__
     if obj_class.__module__ not in ('__builtin__', 'exceptions', 'builtins'):
         return False
