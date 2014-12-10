@@ -1,4 +1,8 @@
 *.pyc
+/jsonpickle/*.so
+/jsonpickle/*.html
+/jsonpickle/*.c
+/jsonpickle/*.h
 *.egg-info
 *.swp
 *.project

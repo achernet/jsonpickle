@@ -24,9 +24,8 @@ SETUP_ARGS = dict(
     version=scope['VERSION'],
     description="Python library for serializing any "
                 "arbitrary object graph into JSON",
-    long_description =
-        "jsonpickle converts complex Python objects to and "
-        "from JSON.",
+    long_description="jsonpickle converts complex Python objects to and "
+    "from JSON.",
     author="David Aguilar",
     author_email="davvid -at- gmail.com",
     url="http://jsonpickle.github.io/",
