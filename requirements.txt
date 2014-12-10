@@ -1,6 +1,9 @@
-feedparser
-simplejson
-demjson
-jsonlib
-yajl
-ujson
+feedparser >= 5.1.3
+simplejson >= 3.6.5
+demjson >= 2.2.2
+jsonlib >= 1.6.1
+yajl >= 0.3.5
+ujson >= 1.33
+Cython >= 0.21.1
+setuptools >= 7.0
+path.py >= 7.0
