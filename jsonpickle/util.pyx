@@ -213,7 +213,7 @@ cpdef inline bint is_noncomplex(object obj):
     return PyObject_IsInstance(obj, time.struct_time)
 
 
-cpdef bint is_function(object obj):
+cpdef inline bint is_function(object obj):
     """Returns true if passed a function
 
     >>> is_function(lambda x: 1)
@@ -233,17 +233,11 @@ cpdef bint is_function(object obj):
         return True
     if PyMethod_Check(obj):
         return True
-    if PyObject_IsInstance(obj, types.BuiltinFunctionType):
-        return True
-    if not PyObject_HasAttrString(obj, '__class__'):
+    obj_class = obj.__class__
+    if obj_class.__module__ not in ('__builtin__', 'exceptions', 'builtins'):
         return False
-    obj_class = PyObject_GetAttrString(obj, '__class__')
-    module_name = translate_module_name(obj_class.__module__)
-    if module_name != '__builtin__':
-        return False
-    name = obj.__class__.__name__
-    return name in ('function', 'builtin_function_or_method',
-                    'instancemethod', 'method-wrapper')
+    name = obj_class.__name__
+    return name in ('function', 'builtin_function_or_method', 'instancemethod', 'method-wrapper')
 
 
 def is_module_function(obj):
