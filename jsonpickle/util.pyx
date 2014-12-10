@@ -341,20 +341,28 @@ def is_reducible(obj):
                  or (is_type(obj) and obj.__module__ == 'datetime')))
 
 
-def in_dict(obj, key, default=False):
+cpdef bint in_dict(object obj, object key, bint default=False):
     """
     Returns true if key exists in obj.__dict__; false if not in.
     If obj.__dict__ is absent, return default
     """
-    return (key in obj.__dict__) if getattr(obj, '__dict__', None) else default
+    cdef object obj_dict
+    if not PyObject_HasAttrString(obj, '__dict__'):
+        return default
+    obj_dict = PyObject_GetAttrString(obj, '__dict__')
+    return key in obj_dict
 
 
-def in_slots(obj, key, default=False):
+cpdef bint in_slots(object obj, object key, bint default=False):
     """
     Returns true if key exists in obj.__slots__; false if not in.
     If obj.__slots__ is absent, return default
     """
-    return (key in obj.__slots__) if getattr(obj, '__slots__', None) else default
+    cdef object obj_slots
+    if not PyObject_HasAttrString(obj, '__slots__'):
+        return default
+    obj_slots = PyObject_GetAttrString(obj, '__slots__')
+    return key in obj_slots
 
 
 def has_reduce(obj):
