@@ -11,7 +11,8 @@ determining the type of an object.
 """
 from cpython.type cimport PyType_Check
 from cpython.function cimport PyFunction_Check
-from cpython.object cimport PyObject_IsInstance, PyObject_HasAttrString
+from cpython.object cimport PyObject_IsInstance, PyObject_HasAttrString, \
+    PyCallable_Check
 from cpython.long cimport PyLong_Check
 from cpython.int cimport PyInt_Check
 from cpython.float cimport PyFloat_Check
@@ -22,6 +23,7 @@ from cpython.tuple cimport PyTuple_Check, PyTuple_CheckExact
 from cpython.list cimport PyList_Check, PyList_CheckExact
 from cpython.dict cimport PyDict_Check, PyDict_CheckExact
 from cpython.mapping cimport PyMapping_Check
+from cpython.version cimport PY_MAJOR_VERSION
 cdef extern from 'Python.h':
     bint PyClass_Check(object obj)
 
@@ -384,7 +386,7 @@ def has_reduce(obj):
     return (has_reduce, has_reduce_ex)
 
 
-def translate_module_name(module):
+cpdef object translate_module_name(object module):
     """Rename builtin modules to a consistent (Python2) module name
 
     This is used so that references to Python's `builtins` module can
@@ -394,28 +396,24 @@ def translate_module_name(module):
     See untranslate_module_name() for the reverse operation.
 
     """
-    if (PY3 and module == 'builtins') or module == 'exceptions':
-        # We map the Python2 `exceptions` module to `__builtin__` because
-        # `__builtin__` is a superset and contains everything that is
-        # available in `exceptions`, which makes the translation simpler.
+    if module == 'exceptions':
         return '__builtin__'
-    else:
-        return module
+    if module == 'builtins' and PY_MAJOR_VERSION == 3:
+        return '__builtin__'
+    return module
 
 
-def untranslate_module_name(module):
+cpdef object untranslate_module_name(object module):
     """Rename module names mention in JSON to names that we can import
 
     This reverses the translation applied by translate_module_name() to
     a module name available to the current version of Python.
 
     """
-    if PY3:
-        # remap `__builtin__` and `exceptions` to the `builtins` module
-        if module == '__builtin__':
-            module = 'builtins'
-        elif module == 'exceptions':
-            module = 'builtins'
+    if PY_MAJOR_VERSION != 3:
+        return module
+    if module in ('__builtin__', 'exceptions'):
+        return 'builtins'
     return module
 
 
