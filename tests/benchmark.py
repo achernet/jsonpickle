@@ -7,21 +7,17 @@
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution.
 
-import sys
 import timeit
-
-IS_25_DOWN = sys.version_info[:2] <= (2, 5)
 
 number = 1000
 
-mod = 'json'
-if IS_25_DOWN:
-    mod = 'simplejson'
+mod = 'ujson'
 
 json = """\
 import feedparser
 import jsonpickle
-import jsonpickle.tests.thirdparty_test as test
+# import jsonpickle.tests.thirdparty_test as test
+import thirdparty_test as test
 doc = feedparser.parse(test.RSS_DOC)
 
 jsonpickle.set_preferred_backend('%s')
