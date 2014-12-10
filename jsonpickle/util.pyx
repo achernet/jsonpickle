@@ -11,8 +11,9 @@ determining the type of an object.
 """
 from cpython.type cimport PyType_Check
 from cpython.function cimport PyFunction_Check
+from cpython.method cimport PyMethod_Check
 from cpython.object cimport PyObject_IsInstance, PyObject_HasAttrString, \
-    PyCallable_Check
+    PyCallable_Check, PyObject_GetAttrString
 from cpython.long cimport PyLong_Check
 from cpython.int cimport PyInt_Check
 from cpython.float cimport PyFloat_Check
@@ -23,6 +24,7 @@ from cpython.tuple cimport PyTuple_Check, PyTuple_CheckExact
 from cpython.list cimport PyList_Check, PyList_CheckExact
 from cpython.dict cimport PyDict_Check, PyDict_CheckExact
 from cpython.mapping cimport PyMapping_Check
+from cpython.module cimport PyModule_Check 
 from cpython.version cimport PY_MAJOR_VERSION
 cdef extern from 'Python.h':
     bint PyClass_Check(object obj)
@@ -209,7 +211,7 @@ cpdef inline bint is_noncomplex(object obj):
     return PyObject_IsInstance(obj, time.struct_time)
 
 
-def is_function(obj):
+cpdef bint is_function(object obj):
     """Returns true if passed a function
 
     >>> is_function(lambda x: 1)
@@ -225,21 +227,21 @@ def is_function(obj):
     >>> is_function(1)
     False
     """
-    if type(obj) in (types.FunctionType,
-                     types.MethodType,
-                     types.LambdaType,
-                     types.BuiltinFunctionType,
-                     types.BuiltinMethodType):
+    if PyFunction_Check(obj):
         return True
-    if not hasattr(obj, '__class__'):
+    if PyMethod_Check(obj):
+        return True
+    if PyObject_IsInstance(obj, types.BuiltinFunctionType):
+        return True
+    if not PyObject_HasAttrString(obj, '__class__'):
+        return False 
+    obj_class = PyObject_GetAttrString(obj, '__class__')
+    module_name = translate_module_name(obj_class.__module__)
+    if module_name != '__builtin__':
         return False
-    module = translate_module_name(obj.__class__.__module__)
     name = obj.__class__.__name__
-    return (module == '__builtin__' and
-            name in ('function',
-                     'builtin_function_or_method',
-                     'instancemethod',
-                     'method-wrapper'))
+    return name in ('function', 'builtin_function_or_method',
+                    'instancemethod', 'method-wrapper')
 
 
 def is_module_function(obj):
