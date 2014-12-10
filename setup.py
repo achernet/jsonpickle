@@ -55,6 +55,13 @@ def main():
             'nose>=1.3.4',
             'mock>=1.0.1',
         ],
+        ext_modules=[
+            Extension(name='jsonpickle.util',
+                      sources=['jsonpickle/util.pyx'],
+                      depends=['jsonpickle/util.pxd'],
+                      extra_compile_args=['-O3', '-Wall', '-march=native'],
+                      extra_link_args=['-O3']),
+        ],
         long_description='jsonpickle converts complex Python objects to and from JSON.',
         author='David Aguilar',
         author_email='davvid -at- gmail.com',
@@ -87,4 +94,3 @@ def main():
 
 if __name__ == '__main__':  # pragma: no cover
     main()
-
