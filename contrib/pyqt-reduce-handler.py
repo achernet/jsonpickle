@@ -3,13 +3,12 @@ This example demonstrates how to add a custom handler to serialize
 Qt's QPointF class jsonpickle using PyQt4.
 
 """
-import sys
-import unittest
-
 from PyQt4 import QtCore
-
-import jsonpickle
 from jsonpickle import handlers
+import jsonpickle
+import sys
+from unittest2.case import TestCase
+import unittest2
 
 
 class QReduceHandler(handlers.BaseHandler):
@@ -38,7 +37,7 @@ class QReduceHandler(handlers.BaseHandler):
 handlers.register(QtCore.QPointF, QReduceHandler)
 
 
-class QtTestCase(unittest.TestCase):
+class QtTestCase(TestCase):
 
     def test_QPointF_roundtrip(self):
         expect = QtCore.QPointF(1.0, 2.0)
@@ -48,10 +47,10 @@ class QtTestCase(unittest.TestCase):
 
 
 def suite(self):
-    suite = unittest.TestSuite()
-    suite.addSuite(unittest.makeSuite(QtTestCase))
+    suite = TestSuite()
+    suite.addSuite(makeSuite(QtTestCase))
     return suite
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest2.main()

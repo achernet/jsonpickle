@@ -6,14 +6,15 @@
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution.
 
-import unittest
-import doctest
-import time
-
-import jsonpickle.util
-from jsonpickle.compat import unicode
-from jsonpickle.compat import long
 from jsonpickle import util
+from jsonpickle.compat import long, unicode
+from unittest2.case import TestCase
+from unittest2.loader import makeSuite
+from unittest2.suite import TestSuite
+import doctest
+import jsonpickle.util
+import time
+import unittest2
 
 
 class Thing(object):
@@ -31,7 +32,7 @@ class ListSubclass(list):
     pass
 
 
-class UtilTestCase(unittest.TestCase):
+class UtilTestCase(TestCase):
 
     def test_is_primitive_int(self):
         self.assertTrue(util.is_primitive(0))
@@ -68,7 +69,7 @@ class UtilTestCase(unittest.TestCase):
         self.assertFalse(util.is_primitive([4, 4]))
 
     def test_is_primitive_dict(self):
-        self.assertFalse(util.is_primitive({'key':'value'}))
+        self.assertFalse(util.is_primitive({'key': 'value'}))
         self.assertFalse(util.is_primitive({}))
 
     def test_is_primitive_tuple(self):
@@ -91,9 +92,9 @@ class UtilTestCase(unittest.TestCase):
         self.assertTrue(util.is_tuple((1, 2)))
 
     def test_is_list_dict(self):
-        self.assertFalse(util.is_list({'key':'value'}))
-        self.assertFalse(util.is_set({'key':'value'}))
-        self.assertFalse(util.is_tuple({'key':'value'}))
+        self.assertFalse(util.is_list({'key': 'value'}))
+        self.assertFalse(util.is_set({'key': 'value'}))
+        self.assertFalse(util.is_tuple({'key': 'value'}))
 
     def test_is_list_other(self):
         self.assertFalse(util.is_list(1))
@@ -147,11 +148,14 @@ class UtilTestCase(unittest.TestCase):
 
     def test_is_function_instance_method(self):
         class Foo(object):
+
             def method(self):
                 pass
+
             @staticmethod
             def staticmethod():
                 pass
+
             @classmethod
             def classmethod(cls):
                 pass
@@ -167,10 +171,11 @@ class UtilTestCase(unittest.TestCase):
 
 
 def suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(UtilTestCase))
+    suite = TestSuite()
+    suite.addTest(makeSuite(UtilTestCase))
     suite.addTest(doctest.DocTestSuite(jsonpickle.util))
     return suite
 
+
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+    unittest2.main(defaultTest='suite')

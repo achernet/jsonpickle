@@ -6,15 +6,18 @@
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution.
 
-import unittest
-import datetime
-import time
-
-import jsonpickle
 from jsonpickle import tags
+from unittest2.case import TestCase
+from unittest2.loader import makeSuite
+from unittest2.suite import TestSuite
+import datetime
+import jsonpickle
+import time
+import unittest2
 
 
 class ObjWithDate(object):
+
     def __init__(self):
         ts = datetime.datetime.now()
         self.data = dict(a='a', ts=ts)
@@ -23,6 +26,7 @@ class ObjWithDate(object):
 
 # UTC implementation from Python 2.7 docs
 class UTC(datetime.tzinfo):
+
     """UTC"""
 
     def utcoffset(self, dt):
@@ -38,13 +42,14 @@ utc = UTC()
 
 
 class TimestampedVariable(object):
+
     def __init__(self, value=None):
         self._value = value
         self._dt_read = datetime.datetime.utcnow()
         self._dt_write = self._dt_read
 
     def get(self, default_value=None):
-        if self._dt_read == None and self._dt_write == None:
+        if self._dt_read is None and self._dt_write is None:
             value = default_value
             self._value = value
             self._dt_write = datetime.datetime.utcnow()
@@ -71,7 +76,7 @@ class TimestampedVariable(object):
         dt_now = datetime.datetime.utcnow()
         td_read = dt_now - self._dt_read
         td_write = dt_now - self._dt_write
-        return( ( td_read > td ) and ( td_write > td ) )
+        return((td_read > td) and (td_write > td))
 
 
 class PersistantVariables(object):
@@ -95,7 +100,7 @@ class PersistantVariables(object):
         return str(self._data)
 
 
-class DateTimeInnerReferenceTestCase(unittest.TestCase):
+class DateTimeInnerReferenceTestCase(TestCase):
 
     def test_object_with_inner_datetime_refs(self):
         pvars = PersistantVariables()
@@ -117,7 +122,7 @@ class DateTimeInnerReferenceTestCase(unittest.TestCase):
         self.assertTrue(obj['z2']._dt_read is not obj['z2']._dt_write)
 
 
-class DateTimeSimpleTestCase(unittest.TestCase):
+class DateTimeSimpleTestCase(TestCase):
 
     def _roundtrip(self, obj):
         """
@@ -177,7 +182,7 @@ class DateTimeSimpleTestCase(unittest.TestCase):
                          test_obj_decoded.data_ref['ts'])
 
 
-class DateTimeAdvancedTestCase(unittest.TestCase):
+class DateTimeAdvancedTestCase(TestCase):
 
     def setUp(self):
         self.pickler = jsonpickle.pickler.Pickler()
@@ -188,7 +193,7 @@ class DateTimeAdvancedTestCase(unittest.TestCase):
         self.unpickler.reset()
 
     def test_struct_time(self):
-        expect = time.struct_time([1,2,3,4,5,6,7,8,9])
+        expect = time.struct_time([1, 2, 3, 4, 5, 6, 7, 8, 9])
         json = jsonpickle.encode(expect)
         actual = jsonpickle.decode(json)
         self.assertEqual(type(actual), time.struct_time)
@@ -213,7 +218,7 @@ class DateTimeAdvancedTestCase(unittest.TestCase):
 
     def test_datetime_inside_int_keys_defaults(self):
         t = datetime.time(hour=10)
-        s = jsonpickle.encode({1:t, 2:t})
+        s = jsonpickle.encode({1: t, 2: t})
         d = jsonpickle.decode(s)
         self.assertEqual(d["1"], d["2"])
         self.assertTrue(d["1"] is d["2"])
@@ -221,7 +226,7 @@ class DateTimeAdvancedTestCase(unittest.TestCase):
 
     def test_datetime_inside_int_keys_with_keys_enabled(self):
         t = datetime.time(hour=10)
-        s = jsonpickle.encode({1:t, 2:t}, keys=True)
+        s = jsonpickle.encode({1: t, 2: t}, keys=True)
         d = jsonpickle.decode(s, keys=True)
         self.assertEqual(d[1], d[2])
         self.assertTrue(d[1] is d[2])
@@ -253,11 +258,12 @@ class DateTimeAdvancedTestCase(unittest.TestCase):
 
 
 def suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(DateTimeSimpleTestCase))
-    suite.addTest(unittest.makeSuite(DateTimeAdvancedTestCase))
-    suite.addTest(unittest.makeSuite(DateTimeInnerReferenceTestCase))
+    suite = TestSuite()
+    suite.addTest(makeSuite(DateTimeSimpleTestCase))
+    suite.addTest(makeSuite(DateTimeAdvancedTestCase))
+    suite.addTest(makeSuite(DateTimeInnerReferenceTestCase))
     return suite
 
+
 if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+    unittest2.main(defaultTest='suite')
