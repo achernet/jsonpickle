@@ -11,16 +11,16 @@ determining the type of an object.
 """
 from cpython.type cimport PyType_Check
 from cpython.function cimport PyFunction_Check
-from cpython.object cimport PyObject_IsInstance
+from cpython.object cimport PyObject_IsInstance, PyObject_HasAttrString
 from cpython.long cimport PyLong_Check
 from cpython.int cimport PyInt_Check
 from cpython.float cimport PyFloat_Check
 from cpython.string cimport PyString_Check, PyString_CheckExact
 from cpython.unicode cimport PyUnicode_Check, PyUnicode_CheckExact
-from cpython.set cimport PyAnySet_CheckExact
+from cpython.set cimport PyAnySet_CheckExact, PyAnySet_Check
 from cpython.tuple cimport PyTuple_Check, PyTuple_CheckExact
 from cpython.list cimport PyList_Check, PyList_CheckExact
-from cpython.dict cimport PyDict_CheckExact
+from cpython.dict cimport PyDict_Check, PyDict_CheckExact
 from cpython.mapping cimport PyMapping_Check
 cdef extern from 'Python.h':
     bint PyClass_Check(object obj)
@@ -32,8 +32,9 @@ import operator
 import time
 import types
 
-from jsonpickle import tags
+from UserDict import UserDict
 from jsonpickle.compat import set, unicode, long, PY3
+from jsonpickle import tags
 
 if not PY3:
     import __builtin__
@@ -196,7 +197,7 @@ cpdef inline bint is_noncomplex(object obj):
 
         * :class:`~time.struct_time`
     """
-    return PyObject_IsInstance(obj, time.struct_time):
+    return PyObject_IsInstance(obj, time.struct_time)
 
 
 def is_function(obj):
@@ -297,17 +298,11 @@ def is_installed(module):
     except ImportError:
         return False
 
-'''
-from cpython.object cimport PyObject_HasAttrString
+
 cpdef inline bint is_list_like(object obj):
-    if not PyObject_HasAttrString('__getitem__'):
+    if not PyObject_HasAttrString(obj, '__getitem__'):
         return False
-    if not PyObject_HasAttrString('append'):
-        return False
-    return True
-'''
-def is_list_like(obj):
-    return hasattr(obj, '__getitem__') and hasattr(obj, 'append')
+    return PyObject_HasAttrString(obj, 'append')
 
 
 def is_iterator(obj):

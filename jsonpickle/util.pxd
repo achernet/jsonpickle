@@ -19,6 +19,7 @@ from cpython.set cimport PyAnySet_CheckExact
 from cpython.tuple cimport PyTuple_Check, PyTuple_CheckExact
 from cpython.list cimport PyList_Check, PyList_CheckExact
 from cpython.dict cimport PyDict_CheckExact
+from jsonpickle import tags
 
 cdef extern from 'Python.h':
     bint PyClass_Check(object obj)
