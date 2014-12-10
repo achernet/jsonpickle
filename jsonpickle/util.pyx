@@ -274,7 +274,7 @@ cpdef inline bint is_module(object obj):
     return PyModule_Check(obj)
 
 
-def is_picklable(name, value):
+cpdef bint is_picklable(object name, object value):
     """Return True if an object can be pickled
 
     >>> import os
@@ -291,7 +291,11 @@ def is_picklable(name, value):
     """
     if name in tags.RESERVED:
         return False
-    return is_module_function(value) or not is_function(value)
+    if is_module_function(value):
+        return True
+    if is_function(value):
+        return False
+    return True
 
 
 def is_installed(module):
