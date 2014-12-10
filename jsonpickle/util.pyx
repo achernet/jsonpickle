@@ -263,7 +263,7 @@ def is_module_function(obj):
             obj.__name__ != '<lambda>')
 
 
-def is_module(obj):
+cpdef inline bint is_module(object obj):
     """Returns True if passed a module
 
     >>> import os
@@ -271,7 +271,7 @@ def is_module(obj):
     True
 
     """
-    return type(obj) is types.ModuleType
+    return PyModule_Check(obj)
 
 
 def is_picklable(name, value):
