@@ -47,6 +47,14 @@ def main():
             'path.py>=7.0'
         ],
         install_requires=get_requirements(),
+        tests_require=[
+            'ipython>=2.3.1',
+            'unittest2>=0.8.0',
+            'coverage>=3.7.1',
+            'sphinx>=1.2.3',
+            'nose>=1.3.4',
+            'mock>=1.0.1',
+        ],
         long_description='jsonpickle converts complex Python objects to and from JSON.',
         author='David Aguilar',
         author_email='davvid -at- gmail.com',
