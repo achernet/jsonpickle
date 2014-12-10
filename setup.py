@@ -37,6 +37,26 @@ def get_requirements():
     return reqs.lines()
 
 
+def get_extensions():
+    from path import Path
+    modules = ['jsonpickle.util']
+    extensions = []
+    for mod_name in modules:
+        ext_dict = {'name': mod_name,
+                    'sources': [mod_name.replace('.', '/') + '.pyx'],
+                    'depends': [mod_name.replace('.', '/') + '.pxd'],
+                    'extra_compile_args': ['-O3', '-Wall', '-march=native'],
+                    'extra_link_args': ['-O3', '-g'],
+                    'include_dirs': ['.']}
+        next_ext = Extension(**ext_dict)
+        next_ext.cython_directives = {"embedsignature": True}
+        c_file = Path(mod_name.replace('.', '/') + '.c')
+        if c_file.exists():
+            c_file.unlink_p()
+        extensions.append(next_ext)
+    return extensions
+
+
 def main():
     setup(
         name='jsonpickle',
@@ -55,13 +75,7 @@ def main():
             'nose>=1.3.4',
             'mock>=1.0.1',
         ],
-        ext_modules=[
-            Extension(name='jsonpickle.util',
-                      sources=['jsonpickle/util.pyx'],
-                      depends=['jsonpickle/util.pxd'],
-                      extra_compile_args=['-O3', '-Wall', '-march=native'],
-                      extra_link_args=['-O3']),
-        ],
+        ext_modules=get_extensions(),
         long_description='jsonpickle converts complex Python objects to and from JSON.',
         author='David Aguilar',
         author_email='davvid -at- gmail.com',
