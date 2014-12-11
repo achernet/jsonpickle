@@ -63,13 +63,13 @@ class Pickler(object):
         self.backend = _make_backend(backend)
         self.keys = keys
         self.warn = warn
-        ## The current recursion depth
+        # The current recursion depth
         self._depth = -1
-        ## The maximal recursion depth
+        # The maximal recursion depth
         self._max_depth = max_depth
-        ## Maps id(obj) to reference IDs
+        # Maps id(obj) to reference IDs
         self._objs = {}
-        ## Avoids garbage collection
+        # Avoids garbage collection
         self._seen = []
         # maximum amount of items to take from a pickled iterator
         self._max_iter = max_iter
@@ -219,7 +219,6 @@ class Pickler(object):
         # when processing cyclical objects.
         return self._getref(obj)
 
-
     def _flatten_file(self, obj):
         """
         Special case file objects
@@ -346,7 +345,7 @@ class Pickler(object):
             rv_as_list = list(reduce_val)
             insufficiency = 5 - len(rv_as_list)
             if insufficiency:
-                rv_as_list+=[None]*insufficiency
+                rv_as_list += [None] * insufficiency
 
             if rv_as_list[0].__name__ == '__newobj__':
                 rv_as_list[0] = tags.NEWOBJ
@@ -375,7 +374,8 @@ class Pickler(object):
         if has_slots:
             return self._flatten_newstyle_with_slots(obj, data)
 
-        # catchall return for data created above without a return (e.g. __getnewargs__ is not supposed to be the end of the story)
+        # catchall return for data created above without a return
+        # (e.g. __getnewargs__ is not supposed to be the end of the story)
         if data:
             return data
 
@@ -389,7 +389,6 @@ class Pickler(object):
             data = None
 
         return data
-
 
     def _flatten_dict_obj(self, obj, data=None):
         """Recursively call flatten() and return json-friendly dict
@@ -432,11 +431,11 @@ class Pickler(object):
         """Return a json-friendly dict for new-style objects with __slots__.
         """
         allslots = [_wrap_string_slot(getattr(cls, '__slots__', tuple()))
-                        for cls in obj.__class__.mro()]
+                    for cls in obj.__class__.mro()]
 
         if not self._flatten_obj_attrs(obj, chain(*allslots), data):
             attrs = [x for x in dir(obj)
-                        if not x.startswith('__') and not x.endswith('__')]
+                     if not x.startswith('__') and not x.endswith('__')]
             self._flatten_obj_attrs(obj, attrs, data)
 
         return data
@@ -450,7 +449,7 @@ class Pickler(object):
                 k = self._escape_key(k)
         else:
             if k is None:
-                k = 'null' # for compatibility with common json encoders
+                k = 'null'  # for compatibility with common json encoders
             if not isinstance(k, (str, unicode)):
                 try:
                     k = repr(k)
