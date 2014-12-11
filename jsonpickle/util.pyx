@@ -399,36 +399,34 @@ cpdef bint in_slots(object obj, object key, bint default=False):
     return key in obj_slots
 
 
-def has_reduce(obj):
+cpdef tuple has_reduce(object obj):
     """
     Tests if __reduce__ or __reduce_ex__ exists in the object dict or
     in the class dicts of every class in the MRO *except object*.
 
     Returns a tuple of booleans (has_reduce, has_reduce_ex)
     """
-
-    if not is_reducible(obj) or is_type(obj):
+    if is_type(obj):
+        return (False, False)
+    if not is_reducible(obj):
         return (False, False)
 
-    has_reduce = False
-    has_reduce_ex = False
+    cdef tuple base_types = type(obj).__mro__
+    cdef bint has_reduce = False
+    cdef bint has_reduce_ex = False
+    cdef str REDUCE = '__reduce__'
+    cdef str REDUCE_EX = '__reduce_ex__'
 
-    REDUCE = '__reduce__'
-    REDUCE_EX = '__reduce_ex__'
-
-    # For object instance
     has_reduce = in_dict(obj, REDUCE)
     has_reduce_ex = in_dict(obj, REDUCE_EX)
-
-    has_reduce = has_reduce or in_slots(obj, REDUCE)
-    has_reduce_ex = has_reduce_ex or in_slots(obj, REDUCE_EX)
-
-    # turn to the MRO
-    for base in type(obj).__mro__:
+    if not has_reduce:
+        has_reduce = has_reduce or in_slots(obj, REDUCE)
+        has_reduce_ex = has_reduce_ex or in_slots(obj, REDUCE_EX)
+    for base in base_types:
         if is_reducible(base):
             has_reduce = has_reduce or in_dict(base, REDUCE)
             has_reduce_ex = has_reduce_ex or in_dict(base, REDUCE_EX)
-        if has_reduce_ex and has_reduce_ex:
+        if has_reduce and has_reduce_ex:
             return (True, True)
 
     return (has_reduce, has_reduce_ex)
