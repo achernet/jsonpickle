@@ -30,7 +30,7 @@ from cpython.version cimport PY_MAJOR_VERSION
 cdef extern from 'Python.h':
     bint PyClass_Check(object obj)
 
-import base64
+from base64 import b64encode, b64decode
 import collections
 from io import IOBase
 import operator
@@ -42,10 +42,9 @@ from UserDict import UserDict
 from jsonpickle.compat import set, unicode, long, PY3
 from jsonpickle import tags
 
-if not PY3:
+if PY_MAJOR_VERSION != 3:
     import __builtin__
 
-SEQUENCES = (list, set, tuple)
 
 cpdef inline bint is_type(object obj):
     """Returns True is obj is a reference to a type.
@@ -490,18 +489,7 @@ def importable_name(cls):
     return '%s.%s' % (module, name)
 
 
-def b64encode(data):
-    payload = base64.b64encode(data)
-    if PY3 and type(payload) is bytes:
-        payload = payload.decode('ascii')
-    return payload
-
-
-def b64decode(payload):
-    if PY3 and type(payload) is not bytes:
-        payload = bytes(payload, 'ascii')
-    return base64.b64decode(payload)
-
-
-def itemgetter(obj, getter=operator.itemgetter(0)):
+cpdef object itemgetter(object obj, object getter=None):
+    if getter is None:
+        getter = operator.itemgetter(0)
     return unicode(getter(obj))
