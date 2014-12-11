@@ -463,7 +463,7 @@ cpdef object untranslate_module_name(object module):
     return module
 
 
-def importable_name(cls):
+cpdef inline str importable_name(object cls):
     """
     >>> class Example(object):
     ...     pass
@@ -485,9 +485,9 @@ def importable_name(cls):
     '__builtin__.AttributeError'
 
     """
-    name = cls.__name__
-    module = translate_module_name(cls.__module__)
-    return '%s.%s' % (module, name)
+    cdef str name = cls.__name__
+    cdef str module = translate_module_name(cls.__module__)
+    return '{0}.{1}'.format(module, name)
 
 
 cpdef object itemgetter(object obj, object getter=None):
