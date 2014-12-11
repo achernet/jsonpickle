@@ -9,75 +9,63 @@
 """Helper functions for pickling and unpickling.  Most functions assist in
 determining the type of an object.
 """
-from cpython.type cimport PyType_Check
-from cpython.function cimport PyFunction_Check
-from cpython.object cimport PyObject_IsInstance
-from cpython.number cimport PyNumber_Check
-from cpython.string cimport PyString_Check, PyString_CheckExact
-from cpython.unicode cimport PyUnicode_Check, PyUnicode_CheckExact
-from cpython.set cimport PyAnySet_CheckExact
-from cpython.tuple cimport PyTuple_Check, PyTuple_CheckExact
-from cpython.list cimport PyList_Check, PyList_CheckExact
-from cpython.dict cimport PyDict_CheckExact
-from jsonpickle import tags
-
 cdef extern from 'Python.h':
     bint PyClass_Check(object obj)
 
-cpdef tuple SEQUENCES = (list, set, tuple)
+from cpython.type cimport PyType_Check
+from cpython.function cimport PyFunction_Check
+from cpython.method cimport PyMethod_Check
+from cpython.object cimport PyObject_IsInstance, PyObject_HasAttrString, \
+    PyCallable_Check, PyObject_GetAttrString, PyObject_TypeCheck, \
+    PyObject_Type
+from cpython.long cimport PyLong_Check
+from cpython.int cimport PyInt_Check
+from cpython.float cimport PyFloat_Check
+from cpython.string cimport PyString_Check, PyString_CheckExact
+from cpython.unicode cimport PyUnicode_Check, PyUnicode_CheckExact
+from cpython.set cimport PyAnySet_CheckExact, PyAnySet_Check
+from cpython.tuple cimport PyTuple_Check, PyTuple_CheckExact
+from cpython.list cimport PyList_Check, PyList_CheckExact
+from cpython.dict cimport PyDict_Check, PyDict_CheckExact
+from cpython.mapping cimport PyMapping_Check
+from cpython.module cimport PyModule_Check
+from cpython.version cimport PY_MAJOR_VERSION
+
+from base64 import b64encode, b64decode
+import collections
+from io import IOBase
+import operator
+import time
+import types
+import sys
+from UserDict import UserDict
+from jsonpickle import tags
+if PY_MAJOR_VERSION != 3:
+    import __builtin__
 
 cpdef inline bint is_type(object obj)
-
 cpdef inline bint is_object(object obj)
-
 cpdef inline bint is_primitive(object obj)
-
 cpdef inline bint is_dictionary(object obj)
-
 cpdef inline bint is_sequence(object obj)
-
 cpdef inline bint is_list(object obj)
-
 cpdef inline bint is_set(object obj)
-
 cpdef inline bint is_tuple(object obj)
-
-# cpdef bint is_dictionary_subclass(obj)
-# 
-# cpdef bint is_sequence_subclass(obj)
-# 
-# cpdef bint is_noncomplex(obj)
-# 
-# cpdef bint is_function(obj)
-# 
-# cpdef bint is_module_function(obj)
-# 
-# cpdef bint is_module(obj)
-# 
-# cpdef bint is_picklable(name, value)
-# 
-# cpdef bint is_installed(module)
-# 
-# cpdef bint is_list_like(obj)
-# 
-# cpdef bint is_iterator(obj)
-# 
-# cpdef bint is_reducible(obj)
-# 
-# cpdef bint in_dict(obj, key, bint default=?)
-# 
-# cpdef bint in_slots(obj, key, bint default=?)
-# 
-# cpdef bint has_reduce(obj)
-# 
-# cpdef translate_module_name(module)
-# 
-# cpdef untranslate_module_name(module)
-# 
-# cpdef importable_name(cls)
-# 
-# cpdef b64encode(data)
-# 
-# cpdef b64decode(payload)
-# 
-# cpdef itemgetter(obj, getter)
+cpdef inline bint is_dictionary_subclass(object obj)
+cpdef inline bint is_sequence_subclass(object obj)
+cpdef inline bint is_noncomplex(object obj)
+cpdef inline bint is_function(object obj)
+cpdef inline bint is_module_function(object obj)
+cpdef inline bint is_module(object obj)
+cpdef bint is_picklable(object name, object value)
+cpdef bint is_installed(str module)
+cpdef inline bint is_list_like(object obj)
+cpdef bint is_iterator(object obj)
+cpdef bint is_reducible(object obj)
+cpdef bint in_dict(object obj, object key, bint default=?)
+cpdef bint in_slots(object obj, object key, bint default=?)
+cpdef tuple has_reduce(object obj)
+cpdef object translate_module_name(object module)
+cpdef object untranslate_module_name(object module)
+cpdef inline str importable_name(object cls)
+cpdef object itemgetter(object obj, object getter=?)
