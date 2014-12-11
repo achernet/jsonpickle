@@ -242,8 +242,9 @@ cpdef inline bint is_function(object obj):
     return name in ('function', 'builtin_function_or_method', 'instancemethod', 'method-wrapper')
 
 
-def is_module_function(obj):
-    """Return True if `obj` is a module-global function
+cpdef inline bint is_module_function(object obj):
+    """
+    Return True if `obj` is a module-global function.
 
     >>> import os
     >>> is_module_function(os.path.exists)
@@ -251,14 +252,17 @@ def is_module_function(obj):
 
     >>> is_module_function(lambda: None)
     False
-
     """
-
-    return (hasattr(obj, '__class__') and
-            obj.__class__ is types.FunctionType and
-            hasattr(obj, '__module__') and
-            hasattr(obj, '__name__') and
-            obj.__name__ != '<lambda>')
+    # only True for old-style classes without a '__class__' property
+    if PyClass_Check(obj):
+        return False
+    if not PyFunction_Check(obj):
+        return False
+    if not PyObject_HasAttrString(obj, '__module__'):
+        return False
+    if obj.__name__ == '<lambda>':
+        return False
+    return True
 
 
 cpdef inline bint is_module(object obj):
@@ -331,7 +335,6 @@ cpdef bint is_iterator(object obj):
     if PyObject_IsInstance(obj, IOBase):
         return False
     return True
-
 
 
 cpdef bint is_reducible(object obj):
