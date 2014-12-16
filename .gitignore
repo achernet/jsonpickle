@@ -1,12 +1,21 @@
 *.pyc
 *.bak
+
+# Cython-generated files
+/jsonpickle/*.o
 /jsonpickle/*.so
 /jsonpickle/*.html
 /jsonpickle/*.c
 /jsonpickle/*.h
+
+# Coverage files
 *.coverage
 /cover
 /htmlcov
+/jsonpickle/*.gcda
+/jsonpickle/*.gcno
+/jsonpickle/jsonpickle.info
+
 *.egg-info
 *.swp
 *.project
