@@ -377,28 +377,24 @@ cpdef bint is_reducible(object obj):
     return True
 
 
-cpdef bint in_dict(object obj, object key, bint default=False):
+cpdef inline bint in_dict(object obj, object key, bint default=False):
     """
     Returns true if key exists in obj.__dict__; false if not in.
     If obj.__dict__ is absent, return default
     """
-    cdef object obj_dict
     if not PyObject_HasAttrString(obj, '__dict__'):
         return default
-    obj_dict = PyObject_GetAttrString(obj, '__dict__')
-    return key in obj_dict
+    return key in obj.__dict__
 
 
-cpdef bint in_slots(object obj, object key, bint default=False):
+cpdef inline bint in_slots(object obj, object key, bint default=False):
     """
     Returns true if key exists in obj.__slots__; false if not in.
     If obj.__slots__ is absent, return default
     """
-    cdef object obj_slots
     if not PyObject_HasAttrString(obj, '__slots__'):
         return default
-    obj_slots = PyObject_GetAttrString(obj, '__slots__')
-    return key in obj_slots
+    return key in obj.__slots__
 
 
 cpdef tuple has_reduce(object obj):
