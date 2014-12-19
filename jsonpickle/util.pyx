@@ -39,7 +39,6 @@ import types
 import sys
 
 from UserDict import UserDict
-from jsonpickle.compat import set, unicode, long, PY3
 from jsonpickle import tags
 
 
@@ -488,7 +487,7 @@ cpdef inline str importable_name(object cls):
     return '{0}.{1}'.format(module, name)
 
 
-cpdef object itemgetter(object obj, object getter=None):
+cpdef inline unicode itemgetter(object obj, object getter=None):
     if getter is None:
         getter = operator.itemgetter(0)
     return unicode(getter(obj))
