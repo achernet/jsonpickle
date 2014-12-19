@@ -33,7 +33,6 @@ from cpython.module cimport PyModule_Check
 from cpython.version cimport PY_MAJOR_VERSION
 
 from base64 import b64encode, b64decode
-import collections
 from _io import _IOBase
 import operator
 import time

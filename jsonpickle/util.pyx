@@ -32,7 +32,6 @@ cdef extern from 'Python.h':
     bint PyFile_Check(object obj)
 
 from base64 import b64encode, b64decode
-import collections
 from _io import _IOBase
 import operator
 import time
@@ -322,8 +321,16 @@ cpdef inline bint is_list_like(object obj):
     return PyObject_HasAttrString(obj, 'append')
 
 
+cdef inline bint _is_coll_iterator(object obj):
+    if not PyObject_HasAttrString(obj, '__iter__'):
+        return False
+    if not PyObject_HasAttrString(obj, 'next'):
+        return False
+    return True
+
+
 cpdef bint is_iterator(object obj):
-    if not PyObject_IsInstance(obj, collections.Iterator):
+    if not _is_coll_iterator(obj):
         return False
     if PyFile_Check(obj):
         return False
