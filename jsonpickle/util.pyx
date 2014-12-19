@@ -255,7 +255,7 @@ cpdef inline bint is_module(object obj):
     return PyModule_Check(obj)
 
 
-cpdef bint is_picklable(object name, object value):
+cpdef inline bint is_picklable(object name, object value):
     """Return True if an object can be pickled
 
     >>> import os
