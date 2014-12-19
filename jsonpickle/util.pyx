@@ -43,17 +43,8 @@ from jsonpickle import tags
 
 
 cpdef inline bint is_type(object obj):
-    """Returns True is obj is a reference to a type.
-
-    >>> is_type(1)
-    False
-
-    >>> is_type(object)
-    True
-
-    >>> class Klass: pass
-    >>> is_type(Klass)
-    True
+    """
+    Returns True is obj is a reference to a type.
     """
     if PyType_Check(obj):
         return True
@@ -63,16 +54,8 @@ cpdef inline bint is_type(object obj):
 
 
 cpdef inline bint is_object(object obj):
-    """Returns True is obj is a reference to an object instance.
-
-    >>> is_object(1)
-    True
-
-    >>> is_object(object())
-    True
-
-    >>> is_object(lambda x: 1)
-    False
+    """
+    Returns True is obj is a reference to an object instance.
     """
     if PyType_Check(obj):
         return False

@@ -32,7 +32,22 @@ class ListSubclass(list):
     pass
 
 
+class OldKlass:
+    pass
+
+
 class UtilTestCase(TestCase):
+
+    def test_is_type(self):
+        self.assertFalse(util.is_type(1))
+        self.assertTrue(util.is_type(object))
+        self.assertTrue(util.is_type(OldKlass))
+
+    def test_is_object(self):
+        self.assertTrue(util.is_object(1))
+        self.assertTrue(util.is_object(object()))
+        self.assertFalse(util.is_object(object))
+        self.assertFalse(util.is_object(lambda x: 1))
 
     def test_is_primitive_int(self):
         self.assertTrue(util.is_primitive(0))
