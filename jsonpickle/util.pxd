@@ -34,7 +34,7 @@ from cpython.version cimport PY_MAJOR_VERSION
 
 from base64 import b64encode, b64decode
 import collections
-from io import IOBase
+from _io import _IOBase
 import operator
 import time
 import types
