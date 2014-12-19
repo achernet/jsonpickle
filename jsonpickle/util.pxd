@@ -11,6 +11,7 @@ determining the type of an object.
 """
 cdef extern from 'Python.h':
     bint PyClass_Check(object obj)
+    bint PyFile_Check(object obj)
 
 from cpython.type cimport PyType_Check
 from cpython.function cimport PyFunction_Check
@@ -40,8 +41,6 @@ import types
 import sys
 from UserDict import UserDict
 from jsonpickle import tags
-if PY_MAJOR_VERSION != 3:
-    import __builtin__
 
 cpdef inline bint is_type(object obj)
 cpdef inline bint is_object(object obj)
@@ -60,6 +59,7 @@ cpdef inline bint is_module(object obj)
 cpdef bint is_picklable(object name, object value)
 cpdef bint is_installed(str module)
 cpdef inline bint is_list_like(object obj)
+cdef inline bint _is_coll_iterator(object obj)
 cpdef bint is_iterator(object obj)
 cpdef bint is_reducible(object obj)
 cpdef bint in_dict(object obj, object key, bint default=?)

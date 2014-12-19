@@ -29,6 +29,7 @@ from cpython.module cimport PyModule_Check
 from cpython.version cimport PY_MAJOR_VERSION
 cdef extern from 'Python.h':
     bint PyClass_Check(object obj)
+    bint PyFile_Check(object obj)
 
 from base64 import b64encode, b64decode
 import collections
@@ -41,9 +42,6 @@ import sys
 from UserDict import UserDict
 from jsonpickle.compat import set, unicode, long, PY3
 from jsonpickle import tags
-
-if PY_MAJOR_VERSION != 3:
-    import __builtin__
 
 
 cpdef inline bint is_type(object obj):
@@ -327,10 +325,7 @@ cpdef inline bint is_list_like(object obj):
 cpdef bint is_iterator(object obj):
     if not PyObject_IsInstance(obj, collections.Iterator):
         return False
-    is_file = False
-    if PY_MAJOR_VERSION != 3:
-        is_file = PyObject_IsInstance(obj, __builtin__.file)
-    if is_file:
+    if PyFile_Check(obj):
         return False
     if PyObject_IsInstance(obj, IOBase):
         return False
