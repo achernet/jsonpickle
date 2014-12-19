@@ -16,7 +16,7 @@ import unittest2
 
 
 def find_rss_doc():
-    cur_path = Path(__file__)
+    cur_path = Path(__file__).abspath()
     while True:
         next_dir = cur_path.dirname()
         if 'jsonpickle' not in next_dir:
