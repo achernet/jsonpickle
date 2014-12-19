@@ -33,7 +33,7 @@ cdef extern from 'Python.h':
 
 from base64 import b64encode, b64decode
 import collections
-from io import IOBase
+from _io import _IOBase
 import operator
 import time
 import types
@@ -327,7 +327,7 @@ cpdef bint is_iterator(object obj):
         return False
     if PyFile_Check(obj):
         return False
-    if PyObject_IsInstance(obj, IOBase):
+    if PyObject_IsInstance(obj, _IOBase):
         return False
     return True
 
