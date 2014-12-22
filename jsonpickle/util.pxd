@@ -41,7 +41,8 @@ import sys
 from UserDict import UserDict
 from jsonpickle import tags
 
-cpdef inline bint is_type(object obj)
+cdef inline bint _is_type(object obj)
+cpdef bint is_type(object obj)
 cpdef inline bint is_object(object obj)
 cpdef inline bint is_primitive(object obj)
 cpdef inline bint is_dictionary(object obj)
