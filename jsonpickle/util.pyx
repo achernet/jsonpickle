@@ -42,15 +42,20 @@ from UserDict import UserDict
 from jsonpickle import tags
 
 
-cpdef inline bint is_type(object obj):
+cdef inline bint _is_type(object obj):
     """
-    Returns True is obj is a reference to a type.
+    Returns True if obj is a reference to a type.
     """
     if PyType_Check(obj):
         return True
-    if PyClass_Check(obj):
-        return True
-    return False
+    return PyClass_Check(obj)
+
+
+cpdef bint is_type(object obj):
+    """
+    Returns True is obj is a reference to a type.
+    """
+    return _is_type(obj)
 
 
 cpdef inline bint is_object(object obj):
@@ -354,7 +359,7 @@ cpdef bint is_reducible(object obj):
         return False
     if type(obj) is object:
         return False
-    if is_type(obj) and obj.__module__ == 'datetime':
+    if _is_type(obj) and obj.__module__ == 'datetime':
         return False
     return True
 
@@ -386,7 +391,7 @@ cpdef tuple has_reduce(object obj):
 
     Returns a tuple of booleans (has_reduce, has_reduce_ex)
     """
-    if is_type(obj):
+    if _is_type(obj):
         return (False, False)
     if not is_reducible(obj):
         return (False, False)
