@@ -9,10 +9,7 @@
 
 import sys
 
-import jsonpickle.util as util
-import jsonpickle.tags as tags
-import jsonpickle.handlers as handlers
-
+from jsonpickle import util, tags, handlers
 from jsonpickle.compat import set
 from jsonpickle.backend import JSONBackend
 
@@ -33,6 +30,7 @@ def _make_backend(backend):
 
 
 class _Proxy(object):
+
     """Proxies are dummy objects that are later replaced by real instances
 
     The `restore()` function has to solve a tricky problem when pickling
@@ -75,17 +73,17 @@ def _obj_setvalue(obj, idx, proxy):
 class Unpickler(object):
 
     def __init__(self, backend=None, keys=False, safe=False):
-        ## The current recursion depth
-        ## Maps reference names to object instances
+        # The current recursion depth
+        # Maps reference names to object instances
         self.backend = _make_backend(backend)
         self.keys = keys
         self.safe = safe
 
         self._namedict = {}
-        ## The namestack grows whenever we recurse into a child object
+        # The namestack grows whenever we recurse into a child object
         self._namestack = []
 
-        ## Maps objects to their index in the _objs list
+        # Maps objects to their index in the _objs list
         self._obj_to_idx = {}
         self._objs = []
         self._proxies = []
@@ -109,16 +107,16 @@ class Unpickler(object):
         'hello world'
         >>> u.restore({'key': 'value'})
         {'key': 'value'}
-
         """
         if reset:
             self.reset()
         value = self._restore(obj)
         if reset:
-            self._swap_proxies()
+            self._finalize()
+
         return value
 
-    def _swap_proxies(self):
+    def _finalize(self):
         """Replace proxies with their corresponding instances"""
         for (obj, attr, proxy, method) in self._proxies:
             method(obj, attr, proxy)
@@ -173,11 +171,11 @@ class Unpickler(object):
         if state:
             try:
                 stage1.__setstate__(state)
-            except AttributeError:
+            except AttributeError as err:
                 # it's fine - we'll try the prescribed default methods
                 try:
                     stage1.__dict__.update(state)
-                except AttributeError:
+                except AttributeError as err:
                     # next prescribed default
                     for k, v in state.items():
                         setattr(stage1, k, v)
@@ -223,6 +221,7 @@ class Unpickler(object):
             instance = handler(self).restore(obj)
             return self._mkref(instance)
 
+        cls = loadclass(class_name)
         if cls is None:
             return self._mkref(obj)
 
@@ -240,28 +239,26 @@ class Unpickler(object):
         return self._restore(default_factory)
 
     def _restore_object_instance(self, obj, cls):
-        # This is a placeholder proxy object which allows child objects to
-        # reference the parent object before it has been instantiated.
-        proxy = _Proxy()
-        self._mkref(proxy)
-
-        # An object can install itself as its own factory, so load the factory
-        # after the instance is available for referencing.
         factory = self._loadfactory(obj)
-
         if has_tag(obj, tags.NEWARGSEX):
             args, kwargs = obj[tags.NEWARGSEX]
         else:
             args = getargs(obj)
             kwargs = {}
+
+        is_oldstyle = not (isinstance(cls, type) or getattr(cls, '__meta__', None))
+
+        # This is a placeholder proxy object which allows child objects to
+        # reference the parent object before it has been instantiated.
+        proxy = _Proxy()
+        self._mkref(proxy)
+
         if args:
             args = self._restore(args)
         if kwargs:
             kwargs = self._restore(kwargs)
-
-        is_oldstyle = not (isinstance(cls, type) or getattr(cls, '__meta__', None))
         try:
-            if (not is_oldstyle) and hasattr(cls, '__new__'):  # new style classes
+            if not is_oldstyle and hasattr(cls, '__new__'):  # new style classes
                 if factory:
                     instance = cls.__new__(cls, factory, *args, **kwargs)
                     instance.default_factory = factory
@@ -286,10 +283,6 @@ class Unpickler(object):
 
         if isinstance(instance, tuple):
             return instance
-
-        if (hasattr(instance, 'default_factory') and
-                type(instance.default_factory) is _Proxy):
-            instance.default_factory = instance.default_factory.instance
 
         return self._restore_object_instance_variables(obj, instance)
 
@@ -403,17 +396,15 @@ class Unpickler(object):
         # instead of doing so in the body of the function to
         # avoid conditional branching inside a tight loop.
         if self.keys:
-            restore_key = self._restore_pickled_key
+            def restore_key(key):
+                if key.startswith(tags.JSON_KEY):
+                    key = decode(key[len(tags.JSON_KEY):],
+                                 backend=self.backend, context=self,
+                                 keys=True, reset=False)
+                return key
         else:
             restore_key = lambda key: key
         return restore_key
-
-    def _restore_pickled_key(self, key):
-        if key.startswith(tags.JSON_KEY):
-            key = decode(key[len(tags.JSON_KEY):],
-                         backend=self.backend, context=self,
-                         keys=True, reset=False)
-        return key
 
     def _refname(self):
         """Calculates the name of the current location in the JSON stack.
