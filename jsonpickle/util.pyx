@@ -316,10 +316,18 @@ cdef inline bint _is_coll_iterator(object obj):
     return True
 
 
+cdef inline bint _is_file(object obj):
+    return PyFile_Check(obj)
+
+
+cpdef bint is_file(object obj):
+    return _is_file(obj)
+
+
 cpdef bint is_iterator(object obj):
     if not _is_coll_iterator(obj):
         return False
-    if PyFile_Check(obj):
+    if _is_file(obj):
         return False
     if PyObject_IsInstance(obj, _IOBase):
         return False
