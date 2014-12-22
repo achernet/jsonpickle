@@ -9,10 +9,7 @@
 
 import sys
 
-import jsonpickle.util as util
-import jsonpickle.tags as tags
-import jsonpickle.handlers as handlers
-
+from jsonpickle import util, tags, handlers
 from jsonpickle.compat import set
 from jsonpickle.backend import JSONBackend
 
@@ -33,6 +30,7 @@ def _make_backend(backend):
 
 
 class _Proxy(object):
+
     """Proxies are dummy objects that are later replaced by real instances
 
     The `restore()` function has to solve a tricky problem when pickling
@@ -60,6 +58,7 @@ class _Proxy(object):
     when swapping proxies with real instances.
 
     """
+
     def __init__(self):
         self.instance = None
 
@@ -75,17 +74,17 @@ def _obj_setvalue(obj, idx, proxy):
 class Unpickler(object):
 
     def __init__(self, backend=None, keys=False, safe=False):
-        ## The current recursion depth
-        ## Maps reference names to object instances
+        # The current recursion depth
+        # Maps reference names to object instances
         self.backend = _make_backend(backend)
         self.keys = keys
         self.safe = safe
 
         self._namedict = {}
-        ## The namestack grows whenever we recurse into a child object
+        # The namestack grows whenever we recurse into a child object
         self._namestack = []
 
-        ## Maps objects to their index in the _objs list
+        # Maps objects to their index in the _objs list
         self._obj_to_idx = {}
         self._objs = []
         self._proxies = []
@@ -126,13 +125,13 @@ class Unpickler(object):
     def _restore(self, obj):
         if has_tag(obj, tags.ID):
             restore = self._restore_id
-        elif has_tag(obj, tags.REF): # Backwards compatibility
+        elif has_tag(obj, tags.REF):  # Backwards compatibility
             restore = self._restore_ref
         elif has_tag(obj, tags.ITERATOR):
             restore = self._restore_iterator
         elif has_tag(obj, tags.TYPE):
             restore = self._restore_type
-        elif has_tag(obj, tags.REPR): # Backwards compatibility
+        elif has_tag(obj, tags.REPR):  # Backwards compatibility
             restore = self._restore_repr
         elif has_tag(obj, tags.REDUCE):
             restore = self._restore_reduce
@@ -218,7 +217,7 @@ class Unpickler(object):
     def _restore_object(self, obj):
         class_name = obj[tags.OBJECT]
         handler = handlers.get(class_name)
-        if handler is not None: # custom handler
+        if handler is not None:  # custom handler
             instance = handler(self).restore(obj)
             return self._mkref(instance)
 
@@ -259,7 +258,7 @@ class Unpickler(object):
         if kwargs:
             kwargs = self._restore(kwargs)
         try:
-            if (not is_oldstyle) and hasattr(cls, '__new__'): # new style classes
+            if not is_oldstyle and hasattr(cls, '__new__'):  # new style classes
                 if factory:
                     instance = cls.__new__(cls, factory, *args, **kwargs)
                     instance.default_factory = factory
@@ -267,7 +266,7 @@ class Unpickler(object):
                     instance = cls.__new__(cls, *args, **kwargs)
             else:
                 instance = object.__new__(cls)
-        except TypeError: # old-style classes
+        except TypeError:  # old-style classes
             is_oldstyle = True
 
         if is_oldstyle:
@@ -333,7 +332,7 @@ class Unpickler(object):
     def _restore_state(self, obj, instance):
         state = self._restore(obj[tags.STATE])
         has_slots = (isinstance(state, tuple) and len(state) == 2
-                        and isinstance(state[1], dict))
+                     and isinstance(state[1], dict))
         has_slots_and_dict = has_slots and isinstance(state[0], dict)
         if hasattr(instance, '__setstate__'):
             instance.__setstate__(state)
@@ -363,8 +362,8 @@ class Unpickler(object):
         parent.extend(children)
         method = _obj_setvalue
         proxies = [(parent, idx, value, method)
-                    for idx, value in enumerate(parent)
-                        if isinstance(value, _Proxy)]
+                   for idx, value in enumerate(parent)
+                   if isinstance(value, _Proxy)]
         self._proxies.extend(proxies)
         return parent
 
@@ -505,9 +504,11 @@ def getargs(obj):
 
 
 class _trivialclassic:
+
     """
     A trivial class that can be instantiated with no args
     """
+
 
 def make_blank_classic(cls):
     """
@@ -518,6 +519,7 @@ def make_blank_classic(cls):
     instance = _trivialclassic()
     instance.__class__ = cls
     return instance
+
 
 def loadrepr(reprstr):
     """Returns an instance of the object from the object's repr() string.
