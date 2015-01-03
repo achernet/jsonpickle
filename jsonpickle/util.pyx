@@ -9,6 +9,9 @@
 """Helper functions for pickling and unpickling.  Most functions assist in
 determining the type of an object.
 """
+cdef extern from 'Python.h':
+    bint PyClass_Check(object obj)
+    bint PyFile_Check(object obj)
 from cpython.type cimport PyType_Check
 from cpython.function cimport PyFunction_Check
 from cpython.method cimport PyMethod_Check
@@ -27,9 +30,6 @@ from cpython.dict cimport PyDict_Check, PyDict_CheckExact
 from cpython.mapping cimport PyMapping_Check
 from cpython.module cimport PyModule_Check
 from cpython.version cimport PY_MAJOR_VERSION
-cdef extern from 'Python.h':
-    bint PyClass_Check(object obj)
-    bint PyFile_Check(object obj)
 
 from base64 import b64encode, b64decode
 from _io import _IOBase
