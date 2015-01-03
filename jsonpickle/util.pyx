@@ -437,8 +437,6 @@ cpdef object translate_module_name(object module):
     """
     if module == 'exceptions':
         return '__builtin__'
-    if module == 'builtins' and PY_MAJOR_VERSION == 3:
-        return '__builtin__'
     return module
 
 
@@ -449,10 +447,6 @@ cpdef object untranslate_module_name(object module):
     a module name available to the current version of Python.
 
     """
-    if PY_MAJOR_VERSION != 3:
-        return module
-    if module in ('__builtin__', 'exceptions'):
-        return 'builtins'
     return module
 
 
