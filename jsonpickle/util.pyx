@@ -58,7 +58,7 @@ cpdef bint is_type(object obj):
     return _is_type(obj)
 
 
-cpdef inline bint is_object(object obj):
+cdef inline bint _is_object(object obj):
     """
     Returns True is obj is a reference to an object instance.
     """
@@ -66,18 +66,21 @@ cpdef inline bint is_object(object obj):
         return False
     if PyFunction_Check(obj):
         return False
-    return PyObject_IsInstance(obj, object):
+    return PyObject_IsInstance(obj, object)
 
 
-cpdef inline bint is_primitive(object obj):
-    """Helper method to see if the object is a basic data type. Strings,
+cpdef bint is_object(object obj):
+    """
+    Returns True is obj is a reference to an object instance.
+    """
+    return _is_object(obj)
+
+
+cdef inline bint _is_primitive(object obj):
+    """
+    Helper method to see if the object is a basic data type. Strings,
     integers, longs, floats, booleans, and None are considered primitive
     and will return True when passed into *is_primitive()*
-
-    >>> is_primitive(3)
-    True
-    >>> is_primitive([4,4])
-    False
     """
     if obj is None:
         return True
@@ -94,60 +97,90 @@ cpdef inline bint is_primitive(object obj):
     return False
 
 
-cpdef inline bint is_dictionary(object obj):
-    """Helper method for testing if the object is a dictionary.
+cpdef bint is_primitive(object obj):
+    """
+    Helper method to see if the object is a basic data type. Strings,
+    integers, longs, floats, booleans, and None are considered primitive
+    and will return True when passed into *is_primitive()*
+    """
+    return _is_primitive(obj)
 
-    >>> is_dictionary({'key':'value'})
-    True
 
+cdef inline bint _is_dictionary(object obj):
+    """
+    Helper method for testing if the object is a dictionary.
     """
     return PyDict_CheckExact(obj)
 
 
-cpdef inline bint is_sequence(object obj):
-    """Helper method to see if the object is a sequence (list, set, or tuple).
-
-    >>> is_sequence([4])
-    True
-
+cpdef bint is_dictionary(object obj):
     """
-    if is_list(obj):
+    Helper method for testing if the object is a dictionary.
+    """
+    return _is_dictionary(obj)
+
+
+cdef inline bint _is_sequence(object obj):
+    """
+    Helper method to see if the object is a sequence (list, set, or tuple).
+    """
+    if _is_list(obj):
         return True
     if is_tuple(obj):
         return True
-    if is_set(obj):
-        return True
-    return False
+    return is_set(obj)
 
 
-cpdef inline bint is_list(object obj):
-    """Helper method to see if the object is a Python list.
+cpdef bint is_sequence(object obj):
+    """
+    Helper method to see if the object is a sequence (list, set, or tuple).
+    """
+    return _is_sequence(obj)
 
-    >>> is_list([4])
-    True
+
+cdef inline bint _is_list(object obj):
+    """
+    Helper method to see if the object is a Python list.
     """
     return PyList_CheckExact(obj)
 
 
-cpdef inline bint is_set(object obj):
-    """Helper method to see if the object is a Python set.
+cpdef bint is_list(object obj):
+    """
+    Helper method to see if the object is a Python list.
+    """
+    return _is_list(obj)
 
-    >>> is_set(set())
-    True
+
+cdef inline bint _is_set(object obj):
+    """
+    Helper method to see if the object is a Python set.
     """
     return PyAnySet_CheckExact(obj)
 
 
-cpdef inline bint is_tuple(object obj):
-    """Helper method to see if the object is a Python tuple.
+cpdef bint is_set(object obj):
+    """
+    Helper method to see if the object is a Python set.
+    """
+    return _is_set(obj)
 
-    >>> is_tuple((1,))
-    True
+
+cdef inline bint _is_tuple(object obj):
+    """
+    Helper method to see if the object is a Python tuple.
     """
     return PyTuple_CheckExact(obj)
 
 
-cpdef inline bint is_dictionary_subclass(object obj):
+cpdef bint is_tuple(object obj):
+    """
+    Helper method to see if the object is a Python tuple.
+    """
+    return _is_tuple(obj)
+
+
+cpdef bint is_dictionary_subclass(object obj):
     """Returns True if *obj* is a subclass of the dict type. *obj* must be
     a subclass and not the actual builtin dict.
 
@@ -164,7 +197,7 @@ cpdef inline bint is_dictionary_subclass(object obj):
     return False
 
 
-cpdef inline bint is_sequence_subclass(object obj):
+cpdef bint is_sequence_subclass(object obj):
     """Returns True if *obj* is a subclass of list, set or tuple.
 
     *obj* must be a subclass and not the actual builtin, such
@@ -185,7 +218,7 @@ cpdef inline bint is_sequence_subclass(object obj):
     return False
 
 
-cpdef inline bint is_noncomplex(object obj):
+cpdef bint is_noncomplex(object obj):
     """Returns True if *obj* is a special (weird) class, that is more complex
     than primitive data types, but is not a full object. Including:
 
@@ -194,7 +227,7 @@ cpdef inline bint is_noncomplex(object obj):
     return PyObject_IsInstance(obj, time.struct_time)
 
 
-cpdef inline bint is_function(object obj):
+cpdef bint is_function(object obj):
     """Returns true if passed a function
 
     >>> is_function(lambda x: 1)
@@ -224,7 +257,7 @@ cpdef inline bint is_function(object obj):
     return name in ('function', 'builtin_function_or_method', 'instancemethod', 'method-wrapper')
 
 
-cpdef inline bint is_module_function(object obj):
+cpdef bint is_module_function(object obj):
     """
     Return True if `obj` is a module-global function.
 
@@ -247,7 +280,7 @@ cpdef inline bint is_module_function(object obj):
     return True
 
 
-cpdef inline bint is_module(object obj):
+cpdef bint is_module(object obj):
     """Returns True if passed a module
 
     >>> import os
@@ -258,7 +291,7 @@ cpdef inline bint is_module(object obj):
     return PyModule_Check(obj)
 
 
-cpdef inline bint is_picklable(object name, object value):
+cpdef bint is_picklable(object name, object value):
     """Return True if an object can be pickled
 
     >>> import os
@@ -277,9 +310,7 @@ cpdef inline bint is_picklable(object name, object value):
         return False
     if is_module_function(value):
         return True
-    if is_function(value):
-        return False
-    return True
+    return not is_function(value)
 
 
 cpdef bint is_installed(object module):
@@ -300,10 +331,22 @@ cpdef bint is_installed(object module):
         return False
 
 
-cpdef inline bint is_list_like(object obj):
+cdef inline bint _is_list_like(object obj):
+    """
+    Return True if :attr:`obj` has methods '__getitem__' and 'append',
+    otherwise return False.
+    """
     if not PyObject_HasAttrString(obj, '__getitem__'):
         return False
     return PyObject_HasAttrString(obj, 'append')
+
+
+cpdef bint is_list_like(object obj):
+    """
+    Return True if :attr:`obj` has methods '__getitem__' and 'append',
+    otherwise return False.
+    """
+    return _is_list_like(obj)
 
 
 cdef inline bint _is_coll_iterator(object obj):
@@ -370,7 +413,7 @@ cpdef bint is_reducible(object obj):
     return True
 
 
-cpdef inline bint in_dict(object obj, object key, bint default=False):
+cdef inline bint _in_dict(object obj, object key, bint default=False):
     """
     Returns true if key exists in obj.__dict__; false if not in.
     If obj.__dict__ is absent, return default
@@ -380,7 +423,15 @@ cpdef inline bint in_dict(object obj, object key, bint default=False):
     return key in obj.__dict__
 
 
-cpdef inline bint in_slots(object obj, object key, bint default=False):
+cpdef bint in_dict(object obj, object key, bint default=False):
+    """
+    Returns true if key exists in obj.__dict__; false if not in.
+    If obj.__dict__ is absent, return default
+    """
+    return _in_dict(obj, key, default)
+
+
+cdef inline bint _in_slots(object obj, object key, bint default=False):
     """
     Returns true if key exists in obj.__slots__; false if not in.
     If obj.__slots__ is absent, return default
@@ -388,6 +439,14 @@ cpdef inline bint in_slots(object obj, object key, bint default=False):
     if not PyObject_HasAttrString(obj, '__slots__'):
         return default
     return key in obj.__slots__
+
+
+cpdef bint in_slots(object obj, object key, bint default=False):
+    """
+    Returns true if key exists in obj.__slots__; false if not in.
+    If obj.__slots__ is absent, return default
+    """
+    return _in_slots(obj, key, default)
 
 
 cpdef tuple has_reduce(object obj):
@@ -475,7 +534,7 @@ cpdef inline str importable_name(object cls):
     return '{0}.{1}'.format(module, name)
 
 
-cpdef inline unicode itemgetter(object obj, object getter=None):
+cpdef unicode itemgetter(object obj, object getter=None):
     if getter is None:
         getter = operator.itemgetter(0)
     return unicode(getter(obj))
