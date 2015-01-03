@@ -49,92 +49,66 @@ class UtilTestCase(TestCase):
         self.assertFalse(util.is_object(object))
         self.assertFalse(util.is_object(lambda x: 1))
 
-    def test_is_primitive_int(self):
-        self.assertTrue(util.is_primitive(0))
+    def test_is_primitive(self):
         self.assertTrue(util.is_primitive(3))
-        self.assertTrue(util.is_primitive(-3))
-
-    def test_is_primitive_float(self):
+        self.assertFalse(util.is_primitive([4, 4]))
         self.assertTrue(util.is_primitive(0))
+        self.assertTrue(util.is_primitive(-3))
+        self.assertTrue(util.is_primitive(0.0))
         self.assertTrue(util.is_primitive(3.5))
         self.assertTrue(util.is_primitive(-3.5))
-        self.assertTrue(util.is_primitive(float(3)))
-
-    def test_is_primitive_long(self):
-        self.assertTrue(util.is_primitive(long(3)))
-
-    def test_is_primitive_bool(self):
+        self.assertTrue(util.is_primitive(3.0))
+        self.assertTrue(util.is_primitive(3L))
         self.assertTrue(util.is_primitive(True))
         self.assertTrue(util.is_primitive(False))
-
-    def test_is_primitive_None(self):
         self.assertTrue(util.is_primitive(None))
-
-    def test_is_primitive_str(self):
         self.assertTrue(util.is_primitive('hello'))
         self.assertTrue(util.is_primitive(''))
-
-    def test_is_primitive_unicode(self):
-        self.assertTrue(util.is_primitive(unicode('hello')))
-        self.assertTrue(util.is_primitive(unicode('')))
-        self.assertTrue(util.is_primitive(unicode('hello')))
-
-    def test_is_primitive_list(self):
+        self.assertTrue(util.is_primitive(u'hello'))
+        self.assertTrue(util.is_primitive(u''))
         self.assertFalse(util.is_primitive([]))
-        self.assertFalse(util.is_primitive([4, 4]))
-
-    def test_is_primitive_dict(self):
         self.assertFalse(util.is_primitive({'key': 'value'}))
         self.assertFalse(util.is_primitive({}))
-
-    def test_is_primitive_tuple(self):
         self.assertFalse(util.is_primitive((1, 3)))
         self.assertFalse(util.is_primitive((1,)))
-
-    def test_is_primitive_set(self):
         self.assertFalse(util.is_primitive(set([1, 3])))
-
-    def test_is_primitive_object(self):
         self.assertFalse(util.is_primitive(Thing('test')))
+        self.assertFalse(util.is_primitive(OldKlass()))
 
-    def test_is_list_list(self):
-        self.assertTrue(util.is_list([1, 2]))
-
-    def test_is_list_set(self):
-        self.assertTrue(util.is_set(set([1, 2])))
-
-    def test_is_list_tuple(self):
-        self.assertTrue(util.is_tuple((1, 2)))
-
-    def test_is_list_dict(self):
-        self.assertFalse(util.is_list({'key': 'value'}))
-        self.assertFalse(util.is_set({'key': 'value'}))
-        self.assertFalse(util.is_tuple({'key': 'value'}))
-
-    def test_is_list_other(self):
-        self.assertFalse(util.is_list(1))
-        self.assertFalse(util.is_set(1))
-        self.assertFalse(util.is_tuple(1))
-
-    def test_is_sequence_various(self):
-        self.assertTrue(util.is_sequence([]))
-        self.assertTrue(util.is_sequence(tuple()))
-        self.assertTrue(util.is_sequence(set()))
-
-    def test_is_dictionary_dict(self):
+    def test_is_dictionary(self):
+        self.assertTrue(util.is_dictionary({'key': 'value'}))
         self.assertTrue(util.is_dictionary({}))
-
-    def test_is_dicitonary_sequences(self):
         self.assertFalse(util.is_dictionary([]))
         self.assertFalse(util.is_dictionary(set()))
-
-    def test_is_dictionary_tuple(self):
         self.assertFalse(util.is_dictionary(tuple()))
-
-    def test_is_dictionary_primitive(self):
         self.assertFalse(util.is_dictionary(int()))
         self.assertFalse(util.is_dictionary(None))
         self.assertFalse(util.is_dictionary(str()))
+
+    def test_is_sequence(self):
+        self.assertTrue(util.is_sequence([]))
+        self.assertTrue(util.is_sequence(tuple()))
+        self.assertTrue(util.is_sequence(set()))
+        self.assertFalse(util.is_sequence({}))
+        self.assertTrue(util.is_sequence([4]))
+
+    def test_is_list(self):
+        self.assertTrue(util.is_list([4]))
+        self.assertTrue(util.is_list([1, 2]))
+        self.assertFalse(util.is_list({'key': 'value'}))
+        self.assertFalse(util.is_list(1))
+
+    def test_is_set(self):
+        self.assertTrue(util.is_set(set()))
+        self.assertTrue(util.is_set(set([1, 2])))
+        self.assertFalse(util.is_set({'key': 'value'}))
+        self.assertFalse(util.is_set(1))
+
+    def test_is_list_tuple(self):
+        self.assertTrue(util.is_tuple((1, )))
+        self.assertTrue(util.is_tuple((1, 2)))
+        self.assertFalse(util.is_tuple({'key': 'value'}))
+        self.assertFalse(util.is_tuple(1))
 
     def test_is_dictionary_subclass_dict(self):
         self.assertFalse(util.is_dictionary_subclass({}))
