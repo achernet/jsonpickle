@@ -5,3 +5,5 @@ ujson >= 1.33
 Cython >= 0.21.1
 setuptools >= 7.0
 path.py >= 7.0
+sh >= 0.11
+unittest2 >= 0.8.0
