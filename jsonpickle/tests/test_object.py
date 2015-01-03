@@ -2,7 +2,7 @@ import collections
 import decimal
 import re
 import sys
-
+import unittest2
 from unittest2.suite import TestSuite
 from unittest2.loader import makeSuite
 from unittest2.case import TestCase
