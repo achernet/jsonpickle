@@ -17,28 +17,27 @@ try:
     from Cython.Distutils import build_ext
 except ImportError:
     from distutils.command.build_ext import build_ext
+import os
 
 
 def get_version():
-    from path import Path
-    from importlib import import_module
-
-    here = Path(__file__).abspath().dirname()
-    version_file = here.joinpath('jsonpickle', 'version.py')
-    version = eval(version_file.lines()[0].split('=')[-1].strip())
+    here = os.path.abspath(os.path.dirname(__file__))
+    version_file = os.path.join(here, 'jsonpickle', 'version.py')
+    with open(version_file, 'rb') as f:
+        lines = f.read().splitlines()
+    version = eval(lines[0].split('=')[-1].strip())
     return version
 
 
 def get_requirements():
-    from path import Path
-
-    here = Path(__file__).abspath().dirname()
-    reqs = here.joinpath('requirements.txt')
-    return reqs.lines()
+    here = os.path.abspath(os.path.dirname(__file__))
+    reqs = os.path.join(here, 'requirements.txt')
+    with open(reqs, 'rb') as f:
+        lines = f.read().splitlines()
+    return lines
 
 
 def get_extensions():
-    from path import Path
     modules = ['jsonpickle.util']
     extensions = []
     for mod_name in modules:
@@ -50,9 +49,9 @@ def get_extensions():
                     'include_dirs': ['.']}
         next_ext = Extension(**ext_dict)
         next_ext.cython_directives = {"embedsignature": True}
-        c_file = Path(mod_name.replace('.', '/') + '.c')
-        if c_file.exists():
-            c_file.unlink_p()
+        c_file = mod_name.replace('.', '/') + '.c'
+        if os.path.exists(c_file):
+            os.unlink(c_file)
         extensions.append(next_ext)
     return extensions
 
