@@ -66,9 +66,7 @@ cpdef inline bint is_object(object obj):
         return False
     if PyFunction_Check(obj):
         return False
-    if not PyObject_IsInstance(obj, object):
-        return False
-    return True
+    return PyObject_IsInstance(obj, object):
 
 
 cpdef inline bint is_primitive(object obj):
