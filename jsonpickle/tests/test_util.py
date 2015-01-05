@@ -5,7 +5,7 @@
 #
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution.
-
+from UserDict import UserDict
 from jsonpickle import util
 from jsonpickle.compat import long, unicode
 from unittest2.case import TestCase
@@ -25,6 +25,10 @@ class Thing(object):
 
 
 class DictSubclass(dict):
+    pass
+
+
+class UserDictSubclass(UserDict):
     pass
 
 
@@ -110,11 +114,10 @@ class UtilTestCase(TestCase):
         self.assertFalse(util.is_tuple({'key': 'value'}))
         self.assertFalse(util.is_tuple(1))
 
-    def test_is_dictionary_subclass_dict(self):
+    def test_is_dictionary_subclass(self):
         self.assertFalse(util.is_dictionary_subclass({}))
-
-    def test_is_dictionary_subclass_subclass(self):
         self.assertTrue(util.is_dictionary_subclass(DictSubclass()))
+        self.assertTrue(util.is_dictionary_subclass(UserDictSubclass()))
 
     def test_is_sequence_subclass_subclass(self):
         self.assertTrue(util.is_sequence_subclass(ListSubclass()))

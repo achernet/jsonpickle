@@ -179,20 +179,15 @@ cpdef bint is_tuple(object obj):
 
 
 cpdef bint is_dictionary_subclass(object obj):
-    """Returns True if *obj* is a subclass of the dict type. *obj* must be
+    """
+    Returns True if *obj* is a subclass of the dict type. *obj* must be
     a subclass and not the actual builtin dict.
-
-    >>> class Temp(dict): pass
-    >>> is_dictionary_subclass(Temp())
-    True
     """
     if is_dictionary(obj):
         return False
     if PyDict_Check(obj):
         return True
-    if PyObject_IsInstance(obj, UserDict):
-        return True
-    return False
+    return PyObject_IsInstance(obj, UserDict)
 
 
 cpdef bint is_sequence_subclass(object obj):
