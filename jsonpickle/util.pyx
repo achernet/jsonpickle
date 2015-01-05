@@ -413,7 +413,7 @@ cpdef bint is_reducible(object obj):
     return True
 
 
-cdef inline bint _in_dict(object obj, object key, bint default=False):
+cdef inline bint _in_dict(object obj, object key, bint default):
     """
     Returns true if key exists in obj.__dict__; false if not in.
     If obj.__dict__ is absent, return default
@@ -431,7 +431,7 @@ cpdef bint in_dict(object obj, object key, bint default=False):
     return _in_dict(obj, key, default)
 
 
-cdef inline bint _in_slots(object obj, object key, bint default=False):
+cdef inline bint _in_slots(object obj, object key, bint default):
     """
     Returns true if key exists in obj.__slots__; false if not in.
     If obj.__slots__ is absent, return default
