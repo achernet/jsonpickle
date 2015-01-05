@@ -153,6 +153,26 @@ class ThingWithStringSlots(object):
         self.ab = a + b
 
 
+class ThingWithSelfAsDefaultFactory(collections.defaultdict):
+    """defaultdict subclass that uses itself as its default factory"""
+
+    def __init__(self):
+        self.default_factory = self
+
+    def __call__(self):
+        return self.__class__()
+
+
+class ThingWithClassAsDefaultFactory(collections.defaultdict):
+    """defaultdict subclass that uses its class as its default factory"""
+
+    def __init__(self):
+        self.default_factory = self.__class__
+
+    def __call__(self):
+        return self.__class__()
+
+
 class AdvancedObjectsTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -197,6 +217,49 @@ class AdvancedObjectsTestCase(unittest.TestCase):
         self.assertEqual(newdefaultdict[2][0], 0) # outer defaultdict
         self.assertEqual(type(newdefaultdict[3]), collections.defaultdict)
         self.assertEqual(newdefaultdict[3].default_factory, int) # outer-most defaultdict
+
+    def test_defaultdict_subclass_with_self_as_default_factory(self):
+        cls = ThingWithSelfAsDefaultFactory
+        tree = cls()
+        newtree = self._test_defaultdict_tree(tree, cls)
+        self.assertEqual(type(newtree['A'].default_factory), cls)
+        self.assertTrue(newtree.default_factory is newtree)
+        self.assertTrue(newtree['A'].default_factory is newtree['A'])
+        self.assertTrue(newtree['Z'].default_factory is newtree['Z'])
+
+    def test_defaultdict_subclass_with_class_as_default_factory(self):
+        cls = ThingWithClassAsDefaultFactory
+        tree = cls()
+        newtree = self._test_defaultdict_tree(tree, cls)
+        self.assertTrue(newtree.default_factory is cls)
+        self.assertTrue(newtree['A'].default_factory is cls)
+        self.assertTrue(newtree['Z'].default_factory is cls)
+
+    def _test_defaultdict_tree(self, tree, cls):
+        tree['A']['B'] = 1
+        tree['A']['C'] = 2
+        # roundtrip
+        encoded = jsonpickle.encode(tree)
+        newtree = jsonpickle.decode(encoded)
+        # make sure we didn't lose anything
+        self.assertEqual(type(newtree), cls)
+        self.assertEqual(type(newtree['A']), cls)
+        self.assertEqual(newtree['A']['B'], 1)
+        self.assertEqual(newtree['A']['C'], 2)
+        # ensure that the resulting default_factory is callable and creates
+        # a new instance of cls.
+        self.assertEqual(type(newtree['A'].default_factory()), cls)
+        # we've never seen 'D' before so the reconstructed defaultdict tree
+        # should create an instance of cls.
+        self.assertEqual(type(newtree['A']['D']), cls)
+        # ensure that proxies do not escape into user code
+        self.assertNotEqual(type(newtree.default_factory),
+                            jsonpickle.unpickler._Proxy)
+        self.assertNotEqual(type(newtree['A'].default_factory),
+                            jsonpickle.unpickler._Proxy)
+        self.assertNotEqual(type(newtree['A']['Z'].default_factory),
+                            jsonpickle.unpickler._Proxy)
+        return newtree
 
     def test_deque_roundtrip(self):
         """Make sure we can handle collections.deque"""
