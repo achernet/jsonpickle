@@ -92,9 +92,7 @@ cdef inline bint _is_primitive(object obj):
         return True
     if PyString_CheckExact(obj):
         return True
-    if PyUnicode_CheckExact(obj):
-        return True
-    return False
+    return PyUnicode_CheckExact(obj)
 
 
 cpdef bint is_primitive(object obj):
