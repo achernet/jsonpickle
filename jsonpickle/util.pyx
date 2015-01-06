@@ -276,7 +276,7 @@ cpdef bint is_module_function(object obj):
         return False
     if not PyFunction_Check(obj):
         return False
-    if not PyObject_HasAttrString(obj, '__module__'):
+    if not PyObject_HasAttr(obj, '__module__'):
         return False
     if obj.__name__ == '<lambda>':
         return False
@@ -341,7 +341,7 @@ cdef inline bint _is_list_like(object obj):
     Return True if :attr:`obj` has methods '__getitem__' and 'append',
     otherwise return False.
     """
-    if not PyObject_HasAttrString(obj, '__getitem__'):
+    if not PyObject_HasAttr(obj, '__getitem__'):
         return False
     if PyObject_HasAttrString(obj, 'append'):
         return True
@@ -357,9 +357,9 @@ cpdef bint is_list_like(object obj):
 
 
 cdef inline bint _is_coll_iterator(object obj):
-    if not PyObject_HasAttrString(obj, '__iter__'):
+    if not PyObject_HasAttr(obj, '__iter__'):
         return False
-    if not PyObject_HasAttrString(obj, 'next'):
+    if not PyObject_HasAttr(obj, 'next'):
         return False
     return True
 
