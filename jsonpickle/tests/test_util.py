@@ -27,6 +27,24 @@ class Thing(object):
         self.child = None
 
 
+def get_thing(name):
+    return Thing(name)
+
+
+class Foo(object):
+
+    def method(self):
+        pass
+
+    @staticmethod
+    def staticmethod():
+        pass
+
+    @classmethod
+    def classmethod(cls):
+        pass
+
+
 class DictSubclass(dict):
     pass
 
@@ -146,29 +164,23 @@ class UtilTestCase(TestCase):
     def test_is_noncomplex_other(self):
         self.assertFalse(util.is_noncomplex('a'))
 
-    def test_is_function_builtins(self):
-        self.assertTrue(util.is_function(globals))
-
-    def test_is_function_lambda(self):
+    def test_is_function(self):
+        self.assertTrue(util.is_function(lambda x: 1))
         self.assertTrue(util.is_function(lambda: False))
-
-    def test_is_function_instance_method(self):
-        class Foo(object):
-
-            def method(self):
-                pass
-
-            @staticmethod
-            def staticmethod():
-                pass
-
-            @classmethod
-            def classmethod(cls):
-                pass
-        f = Foo()
-        self.assertTrue(util.is_function(f.method))
-        self.assertTrue(util.is_function(f.staticmethod))
-        self.assertTrue(util.is_function(f.classmethod))
+        self.assertTrue(util.is_function(locals))
+        self.assertTrue(util.is_function(globals))
+        self.assertFalse(util.is_function(Thing))
+        self.assertFalse(util.is_function(Thing()))
+        self.assertFalse(util.is_function(OldKlass()))
+        self.assertFalse(util.is_function(OldKlass))
+        self.assertTrue(util.is_function(get_thing))
+        self.assertTrue(util.is_function(Foo.method))
+        self.assertTrue(util.is_function(Foo.staticmethod))
+        self.assertTrue(util.is_function(Foo.classmethod))
+        self.assertTrue(util.is_function(Foo().method))
+        self.assertTrue(util.is_function(Foo().staticmethod))
+        self.assertTrue(util.is_function(Foo().classmethod))
+        self.assertFalse(util.is_function(1))
 
     def test_itemgetter(self):
         expect = '0'

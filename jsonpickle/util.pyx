@@ -225,20 +225,8 @@ cpdef bint is_noncomplex(object obj):
 
 
 cpdef bint is_function(object obj):
-    """Returns true if passed a function
-
-    >>> is_function(lambda x: 1)
-    True
-
-    >>> is_function(locals)
-    True
-
-    >>> def method(): pass
-    >>> is_function(method)
-    True
-
-    >>> is_function(1)
-    False
+    """
+    Returns True if passed a function, otherwise returns False.
     """
     if PyFunction_Check(obj):
         return True
