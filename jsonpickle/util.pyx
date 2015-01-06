@@ -48,7 +48,9 @@ cdef inline bint _is_type(object obj):
     """
     if PyType_Check(obj):
         return True
-    return PyClass_Check(obj)
+    if PyClass_Check(obj):
+        return True
+    return False
 
 
 cpdef bint is_type(object obj):
@@ -66,7 +68,9 @@ cdef inline bint _is_object(object obj):
         return False
     if PyFunction_Check(obj):
         return False
-    return PyObject_IsInstance(obj, object)
+    if PyObject_IsInstance(obj, object):
+        return True
+    return False
 
 
 cpdef bint is_object(object obj):
@@ -92,7 +96,9 @@ cdef inline bint _is_primitive(object obj):
         return True
     if PyString_CheckExact(obj):
         return True
-    return PyUnicode_CheckExact(obj)
+    if PyUnicode_CheckExact(obj):
+        return True
+    return False
 
 
 cpdef bint is_primitive(object obj):
@@ -126,7 +132,9 @@ cdef inline bint _is_sequence(object obj):
         return True
     if is_tuple(obj):
         return True
-    return is_set(obj)
+    if is_set(obj):
+        return True
+    return False
 
 
 cpdef bint is_sequence(object obj):
@@ -187,7 +195,9 @@ cpdef bint is_dictionary_subclass(object obj):
         return False
     if PyDict_Check(obj):
         return True
-    return PyObject_IsInstance(obj, UserDict)
+    if PyObject_IsInstance(obj, UserDict):
+        return True
+    return False
 
 
 cpdef bint is_sequence_subclass(object obj):
@@ -303,7 +313,9 @@ cpdef bint is_picklable(object name, object value):
         return False
     if is_module_function(value):
         return True
-    return not is_function(value)
+    if is_function(value):
+        return False
+    return True
 
 
 cpdef bint is_installed(object module):
@@ -331,7 +343,9 @@ cdef inline bint _is_list_like(object obj):
     """
     if not PyObject_HasAttrString(obj, '__getitem__'):
         return False
-    return PyObject_HasAttrString(obj, 'append')
+    if PyObject_HasAttrString(obj, 'append'):
+        return True
+    return False
 
 
 cpdef bint is_list_like(object obj):
