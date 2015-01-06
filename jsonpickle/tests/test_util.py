@@ -17,7 +17,7 @@ import jsonpickle.util
 import time
 import unittest2
 
-TupleSubclass = namedtuple('TupleSubclass', ('a', 'b'))
+TupleSubclass = namedtuple('TupleSubclass', ())
 
 
 class Thing(object):
@@ -168,7 +168,7 @@ class UtilTestCase(TestCase):
         self.assertTrue(util.is_function(locals))
         self.assertTrue(util.is_function(globals))
         self.assertFalse(util.is_function(Thing))
-        self.assertFalse(util.is_function(Thing()))
+        self.assertFalse(util.is_function(Thing('thing')))
         self.assertFalse(util.is_function(OldKlass()))
         self.assertFalse(util.is_function(OldKlass))
         self.assertTrue(util.is_function(get_thing))
