@@ -157,11 +157,9 @@ class UtilTestCase(TestCase):
         self.assertTrue(util.is_sequence_subclass(TupleSubclass()))
         self.assertTrue(util.is_sequence_subclass(UserListSubclass()))
 
-    def test_is_noncomplex_time_struct(self):
+    def test_is_noncomplex(self):
         t = time.struct_time('123456789')
         self.assertTrue(util.is_noncomplex(t))
-
-    def test_is_noncomplex_other(self):
         self.assertFalse(util.is_noncomplex('a'))
 
     def test_is_function(self):
