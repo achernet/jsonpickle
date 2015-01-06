@@ -325,7 +325,7 @@ cdef inline bint _is_list_like(object obj):
     """
     if not PyObject_HasAttr(obj, '__getitem__'):
         return False
-    if PyObject_HasAttrString(obj, 'append'):
+    if PyObject_HasAttr(obj, 'append'):
         return True
     return False
 
@@ -407,7 +407,7 @@ cdef inline bint _in_dict(object obj, object key, bint default):
     Returns true if key exists in obj.__dict__; false if not in.
     If obj.__dict__ is absent, return default
     """
-    if not PyObject_HasAttrString(obj, '__dict__'):
+    if not PyObject_HasAttr(obj, '__dict__'):
         return default
     return key in obj.__dict__
 
@@ -425,7 +425,7 @@ cdef inline bint _in_slots(object obj, object key, bint default):
     Returns true if key exists in obj.__slots__; false if not in.
     If obj.__slots__ is absent, return default
     """
-    if not PyObject_HasAttrString(obj, '__slots__'):
+    if not PyObject_HasAttr(obj, '__slots__'):
         return default
     return key in obj.__slots__
 
