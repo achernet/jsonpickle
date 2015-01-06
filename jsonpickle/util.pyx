@@ -215,7 +215,8 @@ cpdef bint is_sequence_subclass(object obj):
 
 
 cpdef bint is_noncomplex(object obj):
-    """Returns True if *obj* is a special (weird) class, that is more complex
+    """
+    Returns True if *obj* is a special (weird) class, that is more complex
     than primitive data types, but is not a full object. Including:
 
         * :class:`~time.struct_time`
