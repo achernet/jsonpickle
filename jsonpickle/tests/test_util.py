@@ -6,8 +6,9 @@
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution.
 from UserDict import UserDict
+from UserList import UserList
+from collections import namedtuple
 from jsonpickle import util
-from jsonpickle.compat import long, unicode
 from unittest2.case import TestCase
 from unittest2.loader import makeSuite
 from unittest2.suite import TestSuite
@@ -15,6 +16,8 @@ import doctest
 import jsonpickle.util
 import time
 import unittest2
+
+TupleSubclass = namedtuple('TupleSubclass', ('a', 'b'))
 
 
 class Thing(object):
@@ -33,6 +36,14 @@ class UserDictSubclass(UserDict):
 
 
 class ListSubclass(list):
+    pass
+
+
+class UserListSubclass(UserList):
+    pass
+
+
+class SetSubclass(set):
     pass
 
 
@@ -119,11 +130,14 @@ class UtilTestCase(TestCase):
         self.assertTrue(util.is_dictionary_subclass(DictSubclass()))
         self.assertTrue(util.is_dictionary_subclass(UserDictSubclass()))
 
-    def test_is_sequence_subclass_subclass(self):
-        self.assertTrue(util.is_sequence_subclass(ListSubclass()))
-
-    def test_is_sequence_subclass_list(self):
+    def test_is_sequence_subclass(self):
         self.assertFalse(util.is_sequence_subclass([]))
+        self.assertFalse(util.is_sequence_subclass(set()))
+        self.assertFalse(util.is_sequence_subclass(tuple()))
+        self.assertTrue(util.is_sequence_subclass(ListSubclass()))
+        self.assertTrue(util.is_sequence_subclass(SetSubclass()))
+        self.assertTrue(util.is_sequence_subclass(TupleSubclass()))
+        self.assertTrue(util.is_sequence_subclass(UserListSubclass()))
 
     def test_is_noncomplex_time_struct(self):
         t = time.struct_time('123456789')

@@ -197,14 +197,11 @@ cpdef bint is_dictionary_subclass(object obj):
 
 
 cpdef bint is_sequence_subclass(object obj):
-    """Returns True if *obj* is a subclass of list, set or tuple.
+    """
+    Returns True if *obj* is a subclass of list, set or tuple.
 
     *obj* must be a subclass and not the actual builtin, such
-    as list, set, tuple, etc..
-
-    >>> class Temp(list): pass
-    >>> is_sequence_subclass(Temp())
-    True
+    as list, set, tuple, etc.
     """
     if PyList_Check(obj):
         return not is_list(obj)
