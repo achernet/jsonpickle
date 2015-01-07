@@ -243,13 +243,6 @@ cpdef bint is_function(object obj):
 cpdef bint is_module_function(object obj):
     """
     Return True if `obj` is a module-global function.
-
-    >>> import os
-    >>> is_module_function(os.path.exists)
-    True
-
-    >>> is_module_function(lambda: None)
-    False
     """
     # only True for old-style classes without a '__class__' property
     if PyClass_Check(obj):

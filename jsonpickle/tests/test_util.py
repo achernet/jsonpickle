@@ -66,7 +66,9 @@ class SetSubclass(set):
 
 
 class OldKlass:
-    pass
+
+    def old_func(self):
+        pass
 
 
 class UtilTestCase(TestCase):
@@ -167,6 +169,8 @@ class UtilTestCase(TestCase):
         self.assertTrue(util.is_function(lambda: False))
         self.assertTrue(util.is_function(locals))
         self.assertTrue(util.is_function(globals))
+        self.assertTrue(util.is_function(OldKlass().old_func))
+        self.assertTrue(util.is_function(OldKlass.old_func))
         self.assertFalse(util.is_function(Thing))
         self.assertFalse(util.is_function(Thing('thing')))
         self.assertFalse(util.is_function(OldKlass()))
@@ -179,6 +183,15 @@ class UtilTestCase(TestCase):
         self.assertTrue(util.is_function(Foo().staticmethod))
         self.assertTrue(util.is_function(Foo().classmethod))
         self.assertFalse(util.is_function(1))
+
+    def test_is_module_function(self):
+        self.assertTrue(util.is_module_function(namedtuple))
+        self.assertFalse(util.is_module_function(OldKlass().old_func))
+        self.assertFalse(util.is_module_function(OldKlass.old_func))
+        self.assertFalse(util.is_module_function(OldKlass()))
+        self.assertFalse(util.is_module_function(OldKlass))
+        self.assertFalse(util.is_module_function(1))
+        self.assertFalse(util.is_module_function(lambda: None))
 
     def test_itemgetter(self):
         expect = '0'
