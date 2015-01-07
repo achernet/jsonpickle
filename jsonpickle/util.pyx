@@ -64,9 +64,7 @@ cdef inline bint _is_object(object obj):
         return False
     if PyFunction_Check(obj):
         return False
-    if PyObject_IsInstance(obj, object):
-        return True
-    return False
+    return True
 
 
 cpdef bint is_object(object obj):
