@@ -233,10 +233,10 @@ cpdef bint is_function(object obj):
     # only True for old-style classes without a '__class__' property
     if PyClass_Check(obj):
         return False
-    obj_class = obj.__class__
+    cdef object obj_class = obj.__class__
     if obj_class.__module__ not in ('__builtin__', 'exceptions', 'builtins'):
         return False
-    name = obj_class.__name__
+    cdef object name = obj_class.__name__
     return name in ('function', 'builtin_function_or_method', 'instancemethod', 'method-wrapper')
 
 
