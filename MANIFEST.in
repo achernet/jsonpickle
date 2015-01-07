@@ -1,8 +1,9 @@
-include COPYING README.rst
+include COPYING README.rst MANIFEST.in
 include Rakefile
 include *.py
 include jsonpickle/*.py
-include tests/*.py
-include docs/source/**
-include jsonpickleJS/**
+include tests/benchmark.py
+recursive-include docs *
+recursive-include jsonpickleJS *
 include *.txt
+recursive-include jsonpickle *.pyx *.pxd
