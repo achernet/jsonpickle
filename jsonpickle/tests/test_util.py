@@ -5,9 +5,10 @@
 #
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution.
-
+from UserDict import UserDict
+from UserList import UserList
+from collections import namedtuple
 from jsonpickle import util
-from jsonpickle.compat import long, unicode
 from unittest2.case import TestCase
 from unittest2.loader import makeSuite
 from unittest2.suite import TestSuite
@@ -15,6 +16,8 @@ import doctest
 import jsonpickle.util
 import time
 import unittest2
+
+TupleSubclass = namedtuple('TupleSubclass', ())
 
 
 class Thing(object):
@@ -24,7 +27,29 @@ class Thing(object):
         self.child = None
 
 
+def get_thing(name):
+    return Thing(name)
+
+
+class Foo(object):
+
+    def method(self):
+        pass
+
+    @staticmethod
+    def staticmethod():
+        pass
+
+    @classmethod
+    def classmethod(cls):
+        pass
+
+
 class DictSubclass(dict):
+    pass
+
+
+class UserDictSubclass(UserDict):
     pass
 
 
@@ -32,8 +57,18 @@ class ListSubclass(list):
     pass
 
 
-class OldKlass:
+class UserListSubclass(UserList):
     pass
+
+
+class SetSubclass(set):
+    pass
+
+
+class OldKlass:
+
+    def old_func(self):
+        pass
 
 
 class UtilTestCase(TestCase):
@@ -110,48 +145,53 @@ class UtilTestCase(TestCase):
         self.assertFalse(util.is_tuple({'key': 'value'}))
         self.assertFalse(util.is_tuple(1))
 
-    def test_is_dictionary_subclass_dict(self):
+    def test_is_dictionary_subclass(self):
         self.assertFalse(util.is_dictionary_subclass({}))
-
-    def test_is_dictionary_subclass_subclass(self):
         self.assertTrue(util.is_dictionary_subclass(DictSubclass()))
+        self.assertTrue(util.is_dictionary_subclass(UserDictSubclass()))
 
-    def test_is_sequence_subclass_subclass(self):
-        self.assertTrue(util.is_sequence_subclass(ListSubclass()))
-
-    def test_is_sequence_subclass_list(self):
+    def test_is_sequence_subclass(self):
         self.assertFalse(util.is_sequence_subclass([]))
+        self.assertFalse(util.is_sequence_subclass(set()))
+        self.assertFalse(util.is_sequence_subclass(tuple()))
+        self.assertTrue(util.is_sequence_subclass(ListSubclass()))
+        self.assertTrue(util.is_sequence_subclass(SetSubclass()))
+        self.assertTrue(util.is_sequence_subclass(TupleSubclass()))
+        self.assertTrue(util.is_sequence_subclass(UserListSubclass()))
 
-    def test_is_noncomplex_time_struct(self):
+    def test_is_noncomplex(self):
         t = time.struct_time('123456789')
         self.assertTrue(util.is_noncomplex(t))
-
-    def test_is_noncomplex_other(self):
         self.assertFalse(util.is_noncomplex('a'))
 
-    def test_is_function_builtins(self):
-        self.assertTrue(util.is_function(globals))
-
-    def test_is_function_lambda(self):
+    def test_is_function(self):
+        self.assertTrue(util.is_function(lambda x: 1))
         self.assertTrue(util.is_function(lambda: False))
+        self.assertTrue(util.is_function(locals))
+        self.assertTrue(util.is_function(globals))
+        self.assertTrue(util.is_function(OldKlass().old_func))
+        self.assertTrue(util.is_function(OldKlass.old_func))
+        self.assertFalse(util.is_function(Thing))
+        self.assertFalse(util.is_function(Thing('thing')))
+        self.assertFalse(util.is_function(OldKlass()))
+        self.assertFalse(util.is_function(OldKlass))
+        self.assertTrue(util.is_function(get_thing))
+        self.assertTrue(util.is_function(Foo.method))
+        self.assertTrue(util.is_function(Foo.staticmethod))
+        self.assertTrue(util.is_function(Foo.classmethod))
+        self.assertTrue(util.is_function(Foo().method))
+        self.assertTrue(util.is_function(Foo().staticmethod))
+        self.assertTrue(util.is_function(Foo().classmethod))
+        self.assertFalse(util.is_function(1))
 
-    def test_is_function_instance_method(self):
-        class Foo(object):
-
-            def method(self):
-                pass
-
-            @staticmethod
-            def staticmethod():
-                pass
-
-            @classmethod
-            def classmethod(cls):
-                pass
-        f = Foo()
-        self.assertTrue(util.is_function(f.method))
-        self.assertTrue(util.is_function(f.staticmethod))
-        self.assertTrue(util.is_function(f.classmethod))
+    def test_is_module_function(self):
+        self.assertTrue(util.is_module_function(namedtuple))
+        self.assertFalse(util.is_module_function(OldKlass().old_func))
+        self.assertFalse(util.is_module_function(OldKlass.old_func))
+        self.assertFalse(util.is_module_function(OldKlass()))
+        self.assertFalse(util.is_module_function(OldKlass))
+        self.assertFalse(util.is_module_function(1))
+        self.assertFalse(util.is_module_function(lambda: None))
 
     def test_itemgetter(self):
         expect = '0'

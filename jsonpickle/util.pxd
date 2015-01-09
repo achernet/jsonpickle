@@ -16,21 +16,17 @@ cdef extern from 'Python.h':
 from cpython.type cimport PyType_Check
 from cpython.function cimport PyFunction_Check
 from cpython.method cimport PyMethod_Check
-from cpython.object cimport PyObject_IsInstance, PyObject_HasAttrString, \
-    PyCallable_Check, PyObject_GetAttrString, PyObject_TypeCheck, \
-    PyObject_Type
+from cpython.object cimport PyObject_IsInstance, PyObject_HasAttr
 from cpython.long cimport PyLong_Check
 from cpython.int cimport PyInt_Check
 from cpython.float cimport PyFloat_Check
-from cpython.string cimport PyString_Check, PyString_CheckExact
-from cpython.unicode cimport PyUnicode_Check, PyUnicode_CheckExact
+from cpython.string cimport PyString_CheckExact
+from cpython.unicode cimport PyUnicode_CheckExact
 from cpython.set cimport PyAnySet_CheckExact, PyAnySet_Check
 from cpython.tuple cimport PyTuple_Check, PyTuple_CheckExact
 from cpython.list cimport PyList_Check, PyList_CheckExact
 from cpython.dict cimport PyDict_Check, PyDict_CheckExact
-from cpython.mapping cimport PyMapping_Check
 from cpython.module cimport PyModule_Check
-from cpython.version cimport PY_MAJOR_VERSION
 
 from base64 import b64encode, b64decode
 from _io import _IOBase
@@ -72,9 +68,9 @@ cdef inline bint _is_file(object obj)
 cpdef bint is_file(object obj)
 cpdef bint is_iterator(object obj)
 cpdef bint is_reducible(object obj)
-cdef inline bint _in_dict(object obj, object key, bint default=?)
+cdef inline bint _in_dict(object obj, object key, bint default)
 cpdef bint in_dict(object obj, object key, bint default=?)
-cdef inline bint _in_slots(object obj, object key, bint default=?)
+cdef inline bint _in_slots(object obj, object key, bint default)
 cpdef bint in_slots(object obj, object key, bint default=?)
 cpdef tuple has_reduce(object obj)
 cpdef object translate_module_name(object module)

@@ -38,22 +38,34 @@ def get_requirements():
 
 
 def get_extensions():
-    modules = ['jsonpickle.util']
     extensions = []
-    for mod_name in modules:
-        ext_dict = {'name': mod_name,
-                    'sources': [mod_name.replace('.', '/') + '.pyx'],
-                    'depends': [mod_name.replace('.', '/') + '.pxd'],
-                    'extra_compile_args': ['-O3', '-Wall', '-march=native'],
-                    'extra_link_args': ['-O3', '-g'],
-                    'include_dirs': ['.']}
+    ext_dicts = [
+        {
+            'name': 'jsonpickle.util',
+            'sources': ['jsonpickle/util.pyx'],
+            'depends': ['jsonpickle/util.pxd'],
+            'extra_compile_args': ['-O3', '-Wall', '-march=native'],
+            'extra_link_args': ['-O3', '-g'],
+            'include_dirs': ['.']
+        }
+    ]
+    for ext_dict in ext_dicts:
         next_ext = Extension(**ext_dict)
         next_ext.cython_directives = {"embedsignature": True}
-        c_file = mod_name.replace('.', '/') + '.c'
-        if os.path.exists(c_file):
-            os.unlink(c_file)
+        c_files = ['jsonpickle/util.c']
+        for c_file in c_files:
+            if os.path.exists(c_file):
+                os.unlink(c_file)
         extensions.append(next_ext)
     return extensions
+
+
+def get_package_data():
+    package_data = {}  # {'jsonpickle.util': ['*.pyx', '*.pxd']}
+    pkg_exts = ('pxd', 'pyx', 'c', 'h', 'cpp')
+    jsonpickle_files = ['jsonpickle/*.{0}'.format(ext) for ext in pkg_exts]
+    package_data['jsonpickle'] = jsonpickle_files
+    return package_data
 
 
 def main():
@@ -99,6 +111,7 @@ def main():
         ],
         options={'clean': {'all': 1}},
         packages=find_packages(exclude=['ez_setup']),
+        package_data=get_package_data(),
         include_package_data=True,
         zip_safe=False,
         cmdclass={'build_ext': build_ext}
