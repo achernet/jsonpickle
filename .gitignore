@@ -20,6 +20,7 @@
 *.swp
 *.project
 *.pydevproject
+/.idea
 /.settings
 *#*
 *~
