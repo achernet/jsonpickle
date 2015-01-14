@@ -13,7 +13,6 @@ from cpython.ref cimport PyObject
 cdef extern from 'Python.h':
     bint PyClass_Check(object obj)
     bint PyFile_Check(object obj)
-    PyObject* PyImport_GetModuleDict()
 from cpython.type cimport PyType_Check
 from cpython.function cimport PyFunction_Check
 from cpython.method cimport PyMethod_Check
@@ -277,11 +276,8 @@ cpdef bint is_picklable(object name, object value):
     return True
 
 
-cdef inline bint _is_loaded(object module):
-    cdef PyObject* sys_modules_p = PyImport_GetModuleDict()
-    if sys_modules_p == NULL:
-        return False  # M
-    cdef object sys_modules = <object>sys_modules_p
+cdef bint _is_loaded(object module):
+    cdef object sys_modules = <object>PyImport_GetModuleDict()
     return PyDict_Contains(sys_modules, module)
 
 
