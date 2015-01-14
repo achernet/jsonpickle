@@ -252,8 +252,6 @@ cpdef bint is_module_function(object obj):
         return False
     if not PyFunction_Check(obj):
         return False
-    if not PyObject_HasAttr(obj, '__module__'):
-        return False  # M
     if obj.__name__ == '<lambda>':
         return False
     return True
