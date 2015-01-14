@@ -13,7 +13,6 @@ from unittest2.case import TestCase
 from unittest2.loader import makeSuite
 from unittest2.suite import TestSuite
 import doctest
-import jsonpickle.util
 import time
 import unittest2
 
@@ -192,6 +191,11 @@ class UtilTestCase(TestCase):
         self.assertFalse(util.is_module_function(OldKlass))
         self.assertFalse(util.is_module_function(1))
         self.assertFalse(util.is_module_function(lambda: None))
+
+    def test_is_module(self):
+        self.assertTrue(util.is_module(time))
+        self.assertTrue(util.is_module(util))
+        self.assertFalse(util.is_module(TestCase))
 
     def test_itemgetter(self):
         expect = '0'

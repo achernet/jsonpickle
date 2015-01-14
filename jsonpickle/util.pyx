@@ -259,12 +259,8 @@ cpdef bint is_module_function(object obj):
 
 
 cpdef bint is_module(object obj):
-    """Returns True if passed a module
-
-    >>> import os
-    >>> is_module(os)
-    True
-
+    """
+    Returns True if passed a module.
     """
     return PyModule_Check(obj)
 
