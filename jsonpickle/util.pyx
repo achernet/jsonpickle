@@ -286,13 +286,8 @@ cdef inline int _is_loaded(object module):
 
 
 cpdef bint is_installed(object module):
-    """Tests to see if ``module`` is available on the sys.path
-
-    >>> is_installed('sys')
-    True
-    >>> is_installed('hopefullythisisnotarealmodule')
-    False
-
+    """
+    Tests to see if :attr:`module` is available on :attr:`sys.path`.
     """
     if _is_loaded(module):
         return True

@@ -204,6 +204,10 @@ class UtilTestCase(TestCase):
         self.assertFalse(util.is_picklable('old_func', OldKlass.old_func))
         self.assertFalse(util.is_picklable('lambda_func', lambda f: None))
 
+    def test_is_installed(self):
+        self.assertTrue(util.is_installed('sys'))
+        self.assertFalse(util.is_installed('hopefullythisisnotarealmodule'))
+
     def test_itemgetter(self):
         expect = '0'
         actual = util.itemgetter((0, 'zero'))
