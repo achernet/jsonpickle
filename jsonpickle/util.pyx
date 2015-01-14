@@ -24,15 +24,14 @@ from cpython.unicode cimport PyUnicode_CheckExact
 from cpython.set cimport PyAnySet_CheckExact, PyAnySet_Check
 from cpython.tuple cimport PyTuple_Check, PyTuple_CheckExact
 from cpython.list cimport PyList_Check, PyList_CheckExact
-from cpython.dict cimport PyDict_Check, PyDict_CheckExact
-from cpython.module cimport PyModule_Check
+from cpython.dict cimport PyDict_Check, PyDict_CheckExact, PyDict_Contains
+from cpython.module cimport PyModule_Check, PyImport_GetModuleDict
+from cpython.ref cimport PyObject
 
 from base64 import b64encode, b64decode
 from _io import _IOBase
 import operator
 import time
-import types
-import sys
 
 from UserDict import UserDict
 from jsonpickle import tags
@@ -266,19 +265,8 @@ cpdef bint is_module(object obj):
 
 
 cpdef bint is_picklable(object name, object value):
-    """Return True if an object can be pickled
-
-    >>> import os
-    >>> is_picklable('os', os)
-    True
-
-    >>> def foo(): pass
-    >>> is_picklable('foo', foo)
-    True
-
-    >>> is_picklable('foo', lambda: None)
-    False
-
+    """
+    Return True if an object can be pickled.
     """
     if name in tags.RESERVED:
         return False
@@ -287,6 +275,14 @@ cpdef bint is_picklable(object name, object value):
     if is_function(value):
         return False
     return True
+
+
+cdef inline int _is_loaded(object module):
+    cdef PyObject* sys_modules_p = PyImport_GetModuleDict()
+    if sys_modules_p == NULL:
+        return -1
+    cdef object sys_modules = <object>sys_modules_p
+    return PyDict_Contains(sys_modules, module)
 
 
 cpdef bint is_installed(object module):
@@ -298,7 +294,7 @@ cpdef bint is_installed(object module):
     False
 
     """
-    if module in sys.modules:
+    if _is_loaded(module):
         return True
     try:
         __import__(module)

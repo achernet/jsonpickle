@@ -8,7 +8,7 @@
 from UserDict import UserDict
 from UserList import UserList
 from collections import namedtuple
-from jsonpickle import util
+from jsonpickle import util, tags
 from unittest2.case import TestCase
 from unittest2.loader import makeSuite
 from unittest2.suite import TestSuite
@@ -197,6 +197,13 @@ class UtilTestCase(TestCase):
         self.assertTrue(util.is_module(util))
         self.assertFalse(util.is_module(TestCase))
 
+    def test_is_picklable(self):
+        self.assertTrue(util.is_picklable('time', time))
+        self.assertTrue(util.is_picklable('get_thing', get_thing))
+        self.assertFalse(util.is_picklable(tags.ID, 42))
+        self.assertFalse(util.is_picklable('old_func', OldKlass.old_func))
+        self.assertFalse(util.is_picklable('lambda_func', lambda f: None))
+
     def test_itemgetter(self):
         expect = '0'
         actual = util.itemgetter((0, 'zero'))
@@ -206,7 +213,7 @@ class UtilTestCase(TestCase):
 def suite():
     suite = TestSuite()
     suite.addTest(makeSuite(UtilTestCase))
-    suite.addTest(doctest.DocTestSuite(jsonpickle.util))
+    suite.addTest(doctest.DocTestSuite(util))
     return suite
 
 
