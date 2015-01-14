@@ -392,6 +392,22 @@ cpdef bint in_slots(object obj, object key, bint default=False):
     If obj.__slots__ is absent, return default
     """
     return _in_slots(obj, key, default)
+cdef bint _has_reduce_attr(object obj, bint reduce_ex):
+    cdef object reduce_attr
+    if not reduce_ex:
+        reduce_attr = '__reduce__'
+    else:
+        reduce_attr = '__reduce_ex__'
+    cdef bint has_reduce = _in_dict(obj, reduce_attr)
+    if not has_reduce:
+        has_reduce = _in_slots(obj, reduce_attr)
+    cdef tuple base_types = type(obj).__mro__
+    for base in base_types:
+        if not is_reducible(base):
+            continue
+        if _in_dict(base, reduce_attr):
+            return True
+    return False
 
 
 cpdef tuple has_reduce(object obj):
@@ -406,24 +422,8 @@ cpdef tuple has_reduce(object obj):
     if not is_reducible(obj):
         return False, False
 
-    cdef tuple base_types = type(obj).__mro__
-    cdef bint has_reduce = False
-    cdef bint has_reduce_ex = False
-    cdef str reduce = '__reduce__'
-    cdef str reduce_ex = '__reduce_ex__'
-
-    has_reduce = in_dict(obj, reduce)
-    has_reduce_ex = in_dict(obj, reduce_ex)
-    if not has_reduce:
-        has_reduce = has_reduce or in_slots(obj, reduce)  # M in_slots()
-        has_reduce_ex = has_reduce_ex or in_slots(obj, reduce_ex)  # M in_slots()
-    for base in base_types:
-        if is_reducible(base):
-            has_reduce = has_reduce or in_dict(base, reduce)
-            has_reduce_ex = has_reduce_ex or in_dict(base, reduce_ex)
-        if has_reduce and has_reduce_ex:
-            return True, True
-
+    cdef bint has_reduce = _has_reduce_attr(obj, False)
+    cdef bint has_reduce_ex = _has_reduce_attr(obj, True)
     return has_reduce, has_reduce_ex
 
 
