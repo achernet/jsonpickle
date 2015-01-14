@@ -312,14 +312,6 @@ cdef inline bint _is_list_like(object obj):
     return False
 
 
-cpdef bint is_list_like(object obj):
-    """
-    Return True if :attr:`obj` has methods '__getitem__' and 'append',
-    otherwise return False.
-    """
-    return _is_list_like(obj)
-
-
 cdef inline bint _is_coll_iterator(object obj):
     if not PyObject_HasAttr(obj, '__iter__'):
         return False
@@ -343,30 +335,22 @@ cpdef bint is_reducible(object obj):
     Returns false if of a type which have special casing, and should not have their
     __reduce__ methods used
     """
-    if is_list(obj):
-        return False
-    if is_list_like(obj):
-        return False
-    if is_primitive(obj):
-        return False
-    if is_dictionary(obj):
-        return False
-    if is_sequence(obj):
-        return False
-    if is_set(obj):
-        return False
-    if is_tuple(obj):
+    if _is_sequence(obj):  # checks is_tuple(obj) and is_set(obj)
+        return False  # M
+    if _is_primitive(obj):
+        return False  # M
+    if _is_dictionary(obj):
+        return False  # M
+    if is_module(obj):
         return False
     if is_dictionary_subclass(obj):
         return False
-    if is_sequence_subclass(obj):
+    if is_sequence_subclass(obj):  # checks is_list_like(obj)
         return False
     if is_noncomplex(obj):
         return False
     if is_function(obj):
-        return False
-    if is_module(obj):
-        return False
+        return False  # M
     if obj is object:
         return False
     if type(obj) is object:
