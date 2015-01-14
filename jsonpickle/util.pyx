@@ -358,40 +358,26 @@ cpdef bint is_reducible(object obj):
     return True
 
 
-cdef inline bint _in_dict(object obj, object key, bint default):
+cdef bint _in_dict(object obj, object key):
     """
-    Returns true if key exists in obj.__dict__; false if not in.
-    If obj.__dict__ is absent, return default
+    If `obj.__dict__` exists and `obj.__dict__` contains :attr:`key`, return
+    True; otherwise, return False.
     """
     if not PyObject_HasAttr(obj, '__dict__'):
-        return default
+        return False
     return key in obj.__dict__
 
 
-cpdef bint in_dict(object obj, object key, bint default=False):
+cdef bint _in_slots(object obj, object key):
     """
-    Returns true if key exists in obj.__dict__; false if not in.
-    If obj.__dict__ is absent, return default
-    """
-    return _in_dict(obj, key, default)
-
-
-cdef inline bint _in_slots(object obj, object key, bint default):
-    """
-    Returns true if key exists in obj.__slots__; false if not in.
-    If obj.__slots__ is absent, return default
+    If `obj.__slots__` exists and `obj.__slots__` contains :attr:`key`, return
+    True; otherwise, return False.
     """
     if not PyObject_HasAttr(obj, '__slots__'):
-        return default
+        return False
     return key in obj.__slots__
 
 
-cpdef bint in_slots(object obj, object key, bint default=False):
-    """
-    Returns true if key exists in obj.__slots__; false if not in.
-    If obj.__slots__ is absent, return default
-    """
-    return _in_slots(obj, key, default)
 cdef bint _has_reduce_attr(object obj, bint reduce_ex):
     cdef object reduce_attr
     if not reduce_ex:
