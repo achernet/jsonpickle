@@ -126,9 +126,9 @@ cdef inline bint _is_sequence(object obj):
     """
     if _is_list(obj):
         return True
-    if is_tuple(obj):
+    if _is_tuple(obj):
         return True
-    if is_set(obj):
+    if _is_set(obj):
         return True
     return False
 
@@ -187,7 +187,7 @@ cpdef bint is_dictionary_subclass(object obj):
     Returns True if *obj* is a subclass of the dict type. *obj* must be
     a subclass and not the actual builtin dict.
     """
-    if is_dictionary(obj):
+    if _is_dictionary(obj):
         return False
     if PyDict_Check(obj):
         return True
@@ -204,12 +204,13 @@ cpdef bint is_sequence_subclass(object obj):
     as list, set, tuple, etc.
     """
     if PyList_Check(obj):
-        return not is_list(obj)
+        return not _is_list(obj)
     if PyTuple_Check(obj):
-        return not is_tuple(obj)
+        return not _is_tuple(obj)
     if PyAnySet_Check(obj):
-        return not is_set(obj)
-    if is_list_like(obj):
+        return not _is_set(obj)
+    # TODO: Support PySequence_Check(obj)
+    if _is_list_like(obj):
         return True
     return False
 
