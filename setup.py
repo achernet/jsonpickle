@@ -51,7 +51,10 @@ def get_extensions():
     ]
     for ext_dict in ext_dicts:
         next_ext = Extension(**ext_dict)
-        next_ext.cython_directives = {"embedsignature": True}
+        next_ext.cython_directives = {'embedsignature': True,
+                                      'force': True,
+                                      'warning-extra': True,
+                                      'profile': False}
         c_files = ['jsonpickle/util.c']
         for c_file in c_files:
             if os.path.exists(c_file):
