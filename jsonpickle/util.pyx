@@ -426,29 +426,29 @@ cpdef tuple has_reduce(object obj):
     Returns a tuple of booleans (has_reduce, has_reduce_ex)
     """
     if _is_type(obj):
-        return (False, False)
+        return False, False  # M
     if not is_reducible(obj):
-        return (False, False)
+        return False, False
 
     cdef tuple base_types = type(obj).__mro__
     cdef bint has_reduce = False
     cdef bint has_reduce_ex = False
-    cdef str REDUCE = '__reduce__'
-    cdef str REDUCE_EX = '__reduce_ex__'
+    cdef str reduce = '__reduce__'
+    cdef str reduce_ex = '__reduce_ex__'
 
-    has_reduce = in_dict(obj, REDUCE)
-    has_reduce_ex = in_dict(obj, REDUCE_EX)
+    has_reduce = in_dict(obj, reduce)
+    has_reduce_ex = in_dict(obj, reduce_ex)
     if not has_reduce:
-        has_reduce = has_reduce or in_slots(obj, REDUCE)
-        has_reduce_ex = has_reduce_ex or in_slots(obj, REDUCE_EX)
+        has_reduce = has_reduce or in_slots(obj, reduce)  # M in_slots()
+        has_reduce_ex = has_reduce_ex or in_slots(obj, reduce_ex)  # M in_slots()
     for base in base_types:
         if is_reducible(base):
-            has_reduce = has_reduce or in_dict(base, REDUCE)
-            has_reduce_ex = has_reduce_ex or in_dict(base, REDUCE_EX)
+            has_reduce = has_reduce or in_dict(base, reduce)
+            has_reduce_ex = has_reduce_ex or in_dict(base, reduce_ex)
         if has_reduce and has_reduce_ex:
-            return (True, True)
+            return True, True
 
-    return (has_reduce, has_reduce_ex)
+    return has_reduce, has_reduce_ex
 
 
 cpdef object translate_module_name(object module):
