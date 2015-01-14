@@ -8,6 +8,7 @@
 from UserDict import UserDict
 from UserList import UserList
 from collections import namedtuple
+import sys
 from jsonpickle import util, tags
 from unittest2.case import TestCase
 from unittest2.loader import makeSuite
@@ -205,8 +206,24 @@ class UtilTestCase(TestCase):
         self.assertFalse(util.is_picklable('lambda_func', lambda f: None))
 
     def test_is_installed(self):
-        self.assertTrue(util.is_installed('sys'))
-        self.assertFalse(util.is_installed('hopefullythisisnotarealmodule'))
+        self.assertTrue(util.is_installed('time'))
+        self.assertFalse(util.is_installed('module.aint.real'))
+        try:
+            mods = sys.__dict__.pop('modules', {})
+
+            # If sys.modules has been deleted for whatever reason, we should
+            # still be able to import modules and get the same results.
+            self.assertTrue(util.is_installed('os'))
+            self.assertTrue(util.is_installed('time'))
+            self.assertFalse(util.is_installed('module.aint.real'))
+            is_complete = True  # Assert that the code can get here.
+        except Exception:
+            is_complete = False
+        finally:
+            # Immediately revert back to normal to avoid breaking other tests.
+            sys.modules = mods
+        exc_msg = 'is_installed() should not raise an exception!'
+        self.assertTrue(is_complete, exc_msg)
 
     def test_itemgetter(self):
         expect = '0'
