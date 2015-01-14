@@ -9,9 +9,11 @@
 """Helper functions for pickling and unpickling.  Most functions assist in
 determining the type of an object.
 """
+from cpython.ref cimport PyObject
 cdef extern from 'Python.h':
     bint PyClass_Check(object obj)
     bint PyFile_Check(object obj)
+    PyObject* PyImport_GetModuleDict()
 from cpython.type cimport PyType_Check
 from cpython.function cimport PyFunction_Check
 from cpython.method cimport PyMethod_Check
@@ -26,7 +28,6 @@ from cpython.tuple cimport PyTuple_Check, PyTuple_CheckExact
 from cpython.list cimport PyList_Check, PyList_CheckExact
 from cpython.dict cimport PyDict_Check, PyDict_CheckExact, PyDict_Contains
 from cpython.module cimport PyModule_Check, PyImport_GetModuleDict
-from cpython.ref cimport PyObject
 
 from base64 import b64encode, b64decode
 from _io import _IOBase
@@ -277,10 +278,10 @@ cpdef bint is_picklable(object name, object value):
     return True
 
 
-cdef inline int _is_loaded(object module):
+cdef inline bint _is_loaded(object module):
     cdef PyObject* sys_modules_p = PyImport_GetModuleDict()
     if sys_modules_p == NULL:
-        return -1
+        return False  # M
     cdef object sys_modules = <object>sys_modules_p
     return PyDict_Contains(sys_modules, module)
 
