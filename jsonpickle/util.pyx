@@ -82,6 +82,7 @@ cdef inline bint _is_primitive(object obj):
     """
     if obj is None:
         return True
+    # TODO: PyNumber_Check(obj)
     if PyInt_Check(obj):
         return True
     if PyFloat_Check(obj):
@@ -187,6 +188,7 @@ cpdef bint is_dictionary_subclass(object obj):
     """
     if _is_dictionary(obj):
         return False
+    # TODO: support PyMapping_Check(obj)
     if PyDict_Check(obj):
         return True
     if PyObject_IsInstance(obj, UserDict):
@@ -251,7 +253,7 @@ cpdef bint is_module_function(object obj):
     if not PyFunction_Check(obj):
         return False
     if not PyObject_HasAttr(obj, '__module__'):
-        return False
+        return False  # M
     if obj.__name__ == '<lambda>':
         return False
     return True
@@ -322,25 +324,17 @@ cdef inline bint _is_coll_iterator(object obj):
     if not PyObject_HasAttr(obj, '__iter__'):
         return False
     if not PyObject_HasAttr(obj, 'next'):
-        return False
+        return False  # M
     return True
-
-
-cdef inline bint _is_file(object obj):
-    return PyFile_Check(obj)
-
-
-cpdef bint is_file(object obj):
-    return _is_file(obj)
 
 
 cpdef bint is_iterator(object obj):
     if not _is_coll_iterator(obj):
         return False
-    if _is_file(obj):
-        return False
+    if PyFile_Check(obj):
+        return False  # M
     if PyObject_IsInstance(obj, _IOBase):
-        return False
+        return False  # M
     return True
 
 
