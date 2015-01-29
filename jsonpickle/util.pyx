@@ -329,6 +329,8 @@ cpdef bint is_reducible(object obj):
     Returns false if of a type which have special casing, and should not have their
     __reduce__ methods used
     """
+    if obj is object:  # this seems to be the most common case
+        return False
     if _is_sequence(obj):  # checks is_tuple(obj) and is_set(obj)
         return False  # M
     if _is_primitive(obj):
@@ -345,11 +347,11 @@ cpdef bint is_reducible(object obj):
         return False
     if is_function(obj):
         return False  # M
-    if obj is object:
-        return False
     if type(obj) is object:
         return False
-    if _is_type(obj) and obj.__module__ == 'datetime':
+    if not _is_type(obj):
+        return True
+    if obj.__module__ == 'datetime':
         return False
     return True
 
