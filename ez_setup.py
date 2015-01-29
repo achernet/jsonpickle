@@ -13,6 +13,8 @@ the appropriate options to ``use_setuptools()``.
 
 This file can also be run as a script to install or upgrade setuptools.
 """
+import glob
+import tarfile
 import os
 import shutil
 import sys
@@ -27,8 +29,10 @@ import contextlib
 from distutils import log
 
 try:
+    # noinspection PyCompatibility
     from urllib.request import urlopen
 except ImportError:
+    # noinspection PyCompatibility
     from urllib2 import urlopen
 
 try:
@@ -40,9 +44,6 @@ try:
     import simplejson as json
 except ImportError:
     import json
-
-DEFAULT_VERSION_URL = "https://pypi.python.org/pypi/setuptools/json"
-DEFAULT_URL = "https://pypi.python.org/packages/source/s/setuptools/"
 
 
 def _python_cmd(*args):
@@ -64,37 +65,6 @@ def _install(archive_filename, install_args=()):
             return 2
 
 
-def _build_egg(egg, archive_filename, to_dir):
-    with archive_context(archive_filename):
-        # building an egg
-        log.warn('Building a Setuptools egg in %s', to_dir)
-        _python_cmd('setup.py', '-q', 'bdist_egg', '--dist-dir', to_dir)
-    # returning the result
-    log.warn(egg)
-    if not os.path.exists(egg):
-        raise IOError('Could not build the egg.')
-
-
-class ContextualZipFile(zipfile.ZipFile):
-    """
-    Supplement ZipFile class to support context manager for Python 2.6
-    """
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        self.close()
-
-    def __new__(cls, *args, **kwargs):
-        """
-        Construct a ZipFile or ContextualZipFile as appropriate
-        """
-        if hasattr(zipfile.ZipFile, '__exit__'):
-            return zipfile.ZipFile(*args, **kwargs)
-        return super(ContextualZipFile, cls).__new__(cls)
-
-
 @contextlib.contextmanager
 def archive_context(filename):
     # extracting the archive
@@ -103,8 +73,13 @@ def archive_context(filename):
     old_wd = os.getcwd()
     try:
         os.chdir(tmpdir)
-        with ContextualZipFile(filename) as archive:
-            archive.extractall()
+        filename_base, file_ext = os.path.splitext(filename)
+        if file_ext == '.zip':
+            with contextlib.closing(zipfile.ZipFile(filename)) as archive:
+                archive.extractall()
+        else:
+            with contextlib.closing(tarfile.open(filename)) as archive:
+                archive.extractall()
 
         # going in the directory
         subdir = os.path.join(tmpdir, os.listdir(tmpdir)[0])
@@ -117,56 +92,85 @@ def archive_context(filename):
         shutil.rmtree(tmpdir)
 
 
-def _do_download(version, download_base, to_dir, download_delay):
-    egg = os.path.join(to_dir, 'setuptools-%s-py%d.%d.egg'
-                       % (version, sys.version_info[0], sys.version_info[1]))
-    if not os.path.exists(egg):
-        archive = download_setuptools(version, download_base,
-                                      to_dir, download_delay)
-        _build_egg(egg, archive, to_dir)
+def _do_download(package, version, to_dir, download_delay):
+    glob_fmt = '{package}-{version}-py{major}.{minor}*.egg'
+    file_glob = glob_fmt.format(package=package,
+                                version=version,
+                                major=sys.version_info[0],
+                                minor=sys.version_info[1])
+    path_glob = os.path.join(to_dir, file_glob)
+    egg_paths = glob.glob(path_glob)
+    if not egg_paths:
+        archive = download_package(package, version, to_dir, download_delay)
+        with archive_context(archive):
+            # building an egg
+            log.warn('Building a %s egg in %s', package, to_dir)
+            _python_cmd('setup.py', '-q', 'bdist_egg', '--dist-dir', to_dir)
+        # returning the result
+        egg_paths = glob.glob(path_glob)
+        log.warn('Pattern %s matches %d files', path_glob, len(egg_paths))
+        if not egg_paths:
+            raise IOError('Could not build the egg.')
+    egg_stats = {}
+    for path in egg_paths:
+        try:
+            egg_stats[path] = os.stat(path).st_mtime
+        except Exception as e:
+            log.fatal('Error reading path %s', path)
+    egg = max(egg_stats.items(), key=lambda (k, v): v)[0]
     sys.path.insert(0, egg)
 
     # Remove previously-imported pkg_resources if present (see
     # https://bitbucket.org/pypa/setuptools/pull-request/7/ for details).
-    if 'pkg_resources' in sys.modules:
-        del sys.modules['pkg_resources']
+    for key, val in sys.modules.items():
+        if key.startswith('pkg_resources'):
+            del sys.modules[key]
 
     import setuptools
 
     setuptools.bootstrap_install_from = egg
 
 
-def use_setuptools(version=None, download_base=DEFAULT_URL,
-                   to_dir=os.curdir, download_delay=15):
+def use_package(package='setuptools', version=None, to_dir=os.curdir, download_delay=15):
     to_dir = os.path.abspath(to_dir)
-    version = get_latest_version() if version is None else version
+    if version is None:
+        version = get_version_info(package)['latest_version']
     rep_modules = 'pkg_resources', 'setuptools'
     imported = set(sys.modules).intersection(rep_modules)
     try:
         import pkg_resources
     except ImportError:
-        return _do_download(version, download_base, to_dir, download_delay)
-    try:
-        pkg_resources.require("setuptools>=" + version)
-        return
-    except pkg_resources.DistributionNotFound:
-        return _do_download(version, download_base, to_dir, download_delay)
-    except pkg_resources.VersionConflict as VC_err:
-        if imported:
-            msg = textwrap.dedent("""
-                The required version of setuptools (>={version}) is not available,
-                and can't be installed while this script is running. Please
-                install a more recent version first, using
-                'easy_install -U setuptools'.
+        pkg_resources = None
+    if pkg_resources is None:
+        return _do_download(package, version, to_dir, download_delay)
+    while True:
+        try:
+            pkg_resources.require("{0}>={1}".format(package, version))
+            break
+        except pkg_resources.DistributionNotFound as dnf:
+            log.error('Error loading package %s: %s', package, dnf)
+            dnf_package = dnf.args[0].key
+            if package == dnf_package:
+                _do_download(package, version, to_dir, download_delay)
+            else:
+                dnf_version = get_version_info(dnf_package)['latest_version']
+                _do_download(dnf_package, dnf_version, to_dir, download_delay)
+        except pkg_resources.VersionConflict as VC_err:
+            if imported:
+                msg = textwrap.dedent("""
+                    The required version of setuptools (>={version}) is not available,
+                    and can't be installed while this script is running. Please
+                    install a more recent version first, using
+                    'easy_install -U setuptools'.
 
-                (Currently using {VC_err.args[0]!r})
-                """).format(VC_err=VC_err, version=version)
-            sys.stderr.write(msg)
-            sys.exit(2)
+                    (Currently using {VC_err.args[0]!r})
+                    """).format(VC_err=VC_err, version=version)
+                sys.stderr.write(msg)
+                sys.exit(2)
 
-        # otherwise, reload ok
-        del pkg_resources, sys.modules['pkg_resources']
-        return _do_download(version, download_base, to_dir, download_delay)
+            # otherwise, reload ok
+            del pkg_resources, sys.modules['pkg_resources']
+            return _do_download(package, version, to_dir, download_delay)
 
 
 def _clean_check(cmd, target):
@@ -284,18 +288,29 @@ def get_best_downloader():
     return next(viable_downloaders, None)
 
 
-def get_latest_version():
+def get_version_info(package='setuptools', version=None):
     """
     Get the latest version of setuptools.
     """
-    with contextlib.closing(urlopen(DEFAULT_VERSION_URL)) as vsrc:
+    default_version_url = 'https://pypi.python.org/pypi/{0}/json'.format(package)
+    with contextlib.closing(urlopen(default_version_url)) as vsrc:
         data_str = vsrc.read()
     data = json.loads(data_str)
-    return data['info']['version']
+    if version is None or version not in data['info']:
+        latest_version = data['info']['version']
+    else:
+        latest_version = version
+    release_info = {'latest_version': latest_version}
+    for release in data['releases'][latest_version]:
+        if release['packagetype'] == 'sdist':
+            release_info['filename'] = release['filename']
+            release_info['url'] = release['url']
+            break
+    return release_info
 
 
-def download_setuptools(version=None, download_base=DEFAULT_URL,
-                        to_dir=os.curdir, delay=15, downloader_factory=get_best_downloader):
+def download_package(package='setuptools', version=None, to_dir=os.curdir, delay=15,
+                     downloader_factory=get_best_downloader):
     """
     Download setuptools from a specified location and return its filename
 
@@ -310,14 +325,12 @@ def download_setuptools(version=None, download_base=DEFAULT_URL,
     """
     # making sure we use the absolute path
     to_dir = os.path.abspath(to_dir)
-    version = get_latest_version() if version is None else version
-    zip_name = "setuptools-%s.zip" % version
-    url = download_base + zip_name
-    saveto = os.path.join(to_dir, zip_name)
+    version = get_version_info(package, version)
+    saveto = os.path.join(to_dir, version['filename'])
     if not os.path.exists(saveto):  # Avoid repeated downloads
-        log.warn("Downloading %s", url)
+        log.warn("Downloading %s", version['url'])
         downloader = downloader_factory()
-        downloader(url, saveto)
+        downloader(version['url'], saveto)
     return os.path.realpath(saveto)
 
 
@@ -333,13 +346,15 @@ def _parse_args():
     Parse the command line for options
     """
     parser = optparse.OptionParser()
+    parser.add_option('--package', default='setuptools', metavar='PKG',
+                      help='A package (other than setuptools) to install with this tool')
     parser.add_option(
         '--user', dest='user_install', action='store_true', default=False,
         help='install in user site package (requires Python 2.6 or later)')
-    parser.add_option(
-        '--download-base', dest='download_base', metavar="URL",
-        default=DEFAULT_URL,
-        help='alternative URL from where to download the setuptools package')
+    # parser.add_option(
+    #     '--download-base', dest='download_base', metavar="URL",
+    #     default=DEFAULT_URL,
+    #     help='alternative URL from where to download the setuptools package')
     parser.add_option(
         '--insecure', dest='downloader_factory', action='store_const',
         const=lambda: download_file_insecure, default=get_best_downloader,
@@ -357,11 +372,8 @@ def _parse_args():
 def main():
     """Install or upgrade setuptools and EasyInstall"""
     options = _parse_args()
-    archive = download_setuptools(
-        version=options.version,
-        download_base=options.download_base,
-        downloader_factory=options.downloader_factory,
-    )
+    archive = download_package(package=options.package, version=options.version,
+                               downloader_factory=options.downloader_factory)
     return _install(archive, _build_install_args(options))
 
 
