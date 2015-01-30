@@ -5,8 +5,6 @@
 /jsonpickle/*.o
 /jsonpickle/*.so
 /jsonpickle/*.html
-/jsonpickle/*.c
-/jsonpickle/*.h
 
 # Coverage files
 *.coverage

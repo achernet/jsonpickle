@@ -6,4 +6,4 @@ include tests/benchmark.py
 recursive-include docs *
 recursive-include jsonpickleJS *
 include *.txt
-recursive-include jsonpickle *.pyx *.pxd
+recursive-include jsonpickle *.pyx *.pxd *.c

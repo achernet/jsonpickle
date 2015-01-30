@@ -55,10 +55,6 @@ def get_extensions():
                                       'force': True,
                                       'warning-extra': True,
                                       'profile': False}
-        c_files = ['jsonpickle/util.c']
-        for c_file in c_files:
-            if os.path.exists(c_file):
-                os.unlink(c_file)
         extensions.append(next_ext)
     return extensions
 
